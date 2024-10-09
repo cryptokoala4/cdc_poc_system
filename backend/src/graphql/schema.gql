@@ -2,11 +2,13 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type MenuItem {
-  id: ID!
-  name: String!
-  price: Float!
-  description: String
+type Bill {
+  _id: ID!
+  createdAt: DateTime!
+  finalizedAt: DateTime
+  isFinalized: Boolean!
+  items: [BillItem!]!
+  tableNumber: Float!
 }
 
 type BillItem {
@@ -14,13 +16,10 @@ type BillItem {
   quantity: Float!
 }
 
-type Bill {
-  id: ID!
-  items: [BillItem!]!
-  totalAmount: Float!
-  tableNumber: Float!
-  createdAt: DateTime!
-  paidAt: DateTime
+input CreateMenuItemInput {
+  description: String!
+  name: String!
+  price: Float!
 }
 
 """
@@ -28,18 +27,38 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type Table {
-  id: ID!
-  tableNumber: Float!
-  capacity: Float!
-  isOccupied: Boolean!
-  currentBillId: String
+type MenuItem {
+  _id: ID!
+  description: String!
+  name: String!
+  price: Float!
+}
+
+type Mutation {
+  createMenuItem(createMenuItemInput: CreateMenuItemInput!): MenuItem!
+  removeMenuItem(_id: String!): MenuItem!
+  updateMenuItem(updateMenuItemInput: UpdateMenuItemInput!): MenuItem!
 }
 
 type Query {
-  getMenuItems: [MenuItem!]!
+  bill(_id: String!): Bill!
   bills: [Bill!]!
-  bill(id: String!): Bill!
+  menuItem(_id: String!): MenuItem!
+  menuItems: [MenuItem!]!
+  table(_id: String!): Table!
   tables: [Table!]!
-  table(id: String!): Table!
+}
+
+type Table {
+  _id: ID!
+  currentBill: Bill
+  isOccupied: Boolean!
+  number: Float!
+}
+
+input UpdateMenuItemInput {
+  _id: ID!
+  description: String
+  name: String
+  price: Float
 }

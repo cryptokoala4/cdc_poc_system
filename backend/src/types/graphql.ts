@@ -8,11 +8,26 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export interface MenuItem {
-    id: string;
+export interface CreateMenuItemInput {
+    description: string;
     name: string;
     price: number;
+}
+
+export interface UpdateMenuItemInput {
+    _id: string;
     description?: Nullable<string>;
+    name?: Nullable<string>;
+    price?: Nullable<number>;
+}
+
+export interface Bill {
+    _id: string;
+    createdAt: DateTime;
+    finalizedAt?: Nullable<DateTime>;
+    isFinalized: boolean;
+    items: BillItem[];
+    tableNumber: number;
 }
 
 export interface BillItem {
@@ -20,29 +35,33 @@ export interface BillItem {
     quantity: number;
 }
 
-export interface Bill {
-    id: string;
-    items: BillItem[];
-    totalAmount: number;
-    tableNumber: number;
-    createdAt: DateTime;
-    paidAt?: Nullable<DateTime>;
+export interface MenuItem {
+    _id: string;
+    description: string;
+    name: string;
+    price: number;
 }
 
-export interface Table {
-    id: string;
-    tableNumber: number;
-    capacity: number;
-    isOccupied: boolean;
-    currentBillId?: Nullable<string>;
+export interface IMutation {
+    createMenuItem(createMenuItemInput: CreateMenuItemInput): MenuItem | Promise<MenuItem>;
+    removeMenuItem(_id: string): MenuItem | Promise<MenuItem>;
+    updateMenuItem(updateMenuItemInput: UpdateMenuItemInput): MenuItem | Promise<MenuItem>;
 }
 
 export interface IQuery {
-    getMenuItems(): MenuItem[] | Promise<MenuItem[]>;
+    bill(_id: string): Bill | Promise<Bill>;
     bills(): Bill[] | Promise<Bill[]>;
-    bill(id: string): Bill | Promise<Bill>;
+    menuItem(_id: string): MenuItem | Promise<MenuItem>;
+    menuItems(): MenuItem[] | Promise<MenuItem[]>;
+    table(_id: string): Table | Promise<Table>;
     tables(): Table[] | Promise<Table[]>;
-    table(id: string): Table | Promise<Table>;
+}
+
+export interface Table {
+    _id: string;
+    currentBill?: Nullable<Bill>;
+    isOccupied: boolean;
+    number: number;
 }
 
 export type DateTime = any;

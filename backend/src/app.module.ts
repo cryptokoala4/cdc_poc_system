@@ -4,9 +4,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { MenuItemSchema } from './schemas/menu-item.schema';
-import { BillSchema } from './schemas/bill.schema';
-import { TableSchema } from './schemas/table.schema';
+import { MenuItemSchema } from './entities/menu-item.entity';
+import { BillSchema } from './entities/bill.entity';
+import { TableSchema } from './entities/table.entity';
 import { MenuItemsService } from './services/menu-items.service';
 import { BillsService } from './services/bills.service';
 import { TablesService } from './services/tables.service';
@@ -17,7 +17,10 @@ import { TablesResolver } from './resolvers/tables.resolver';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    MongooseModule.forRoot(process.env.MONGODB_URI, {
+      // useNewUrlParser: true,
+      // useUnifiedTopology: true,
+    }),
     MongooseModule.forFeature([
       { name: 'MenuItem', schema: MenuItemSchema },
       { name: 'Bill', schema: BillSchema },
@@ -29,6 +32,7 @@ import { TablesResolver } from './resolvers/tables.resolver';
       definitions: {
         path: join(process.cwd(), 'src/types/graphql.ts'),
       },
+      sortSchema: true,
     }),
   ],
   providers: [
