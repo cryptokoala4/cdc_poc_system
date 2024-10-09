@@ -1,23 +1,20 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { Document } from 'mongoose';
+import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
 
 @ObjectType()
 @Schema()
 export class MenuItem {
   @Field(() => ID)
+  @Prop({ type: String })
   _id: string;
 
   @Field()
-  @Prop()
+  @Prop({ required: true })
   name: string;
 
-  @Field()
-  @Prop()
-  description: string;
-
-  @Field()
-  @Prop()
+  @Field(() => Float)
+  @Prop({ required: true })
   price: number;
 }
 

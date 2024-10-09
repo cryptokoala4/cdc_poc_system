@@ -8,19 +8,6 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export interface CreateMenuItemInput {
-    description: string;
-    name: string;
-    price: number;
-}
-
-export interface UpdateMenuItemInput {
-    _id: string;
-    description?: Nullable<string>;
-    name?: Nullable<string>;
-    price?: Nullable<number>;
-}
-
 export interface Bill {
     _id: string;
     createdAt: DateTime;
@@ -37,21 +24,14 @@ export interface BillItem {
 
 export interface MenuItem {
     _id: string;
-    description: string;
     name: string;
     price: number;
-}
-
-export interface IMutation {
-    createMenuItem(createMenuItemInput: CreateMenuItemInput): MenuItem | Promise<MenuItem>;
-    removeMenuItem(_id: string): MenuItem | Promise<MenuItem>;
-    updateMenuItem(updateMenuItemInput: UpdateMenuItemInput): MenuItem | Promise<MenuItem>;
 }
 
 export interface IQuery {
     bill(_id: string): Bill | Promise<Bill>;
     bills(): Bill[] | Promise<Bill[]>;
-    menuItem(_id: string): MenuItem | Promise<MenuItem>;
+    menuItem(_id: string): Nullable<MenuItem> | Promise<Nullable<MenuItem>>;
     menuItems(): MenuItem[] | Promise<MenuItem[]>;
     table(_id: string): Table | Promise<Table>;
     tables(): Table[] | Promise<Table[]>;
