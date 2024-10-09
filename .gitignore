@@ -12,6 +12,7 @@ backend/dist/
 .env
 .env.local
 .env.*
+backend/.env
 
 # Debug logs
 npm-debug.log*
@@ -32,10 +33,26 @@ Thumbs.db
 *.seed
 *.pid.lock
 
+# Build output
+/build
+/dist
+
 # Testing
 coverage/
+.nyc_output/
 
 # Temporary files
 *.swp
 *.swo
 *~
+/tmp
+/temp
+
+# Package manager locks
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+logs
+*.log
