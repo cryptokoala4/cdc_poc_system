@@ -23,6 +23,10 @@ export class Table {
   @Field(() => ID, { nullable: true })
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Bill', default: null })
   currentBillId: string | null;
+
+  @Field(() => ID, { nullable: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Customer', default: null })
+  customerId: string | null;
 }
 
 export type TableDocument = Table & Document;

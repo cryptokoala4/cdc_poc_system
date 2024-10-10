@@ -2,7 +2,6 @@ import { Model } from 'mongoose';
 import { MenuItem, MenuItemDocument } from '../entities/menu-item.entity';
 
 const MENU_ITEMS: Partial<MenuItem>[] = [
-  // Main dishes
   {
     name: 'Tonkatsu',
     description: 'Deep-fried breaded pork cutlet',
@@ -27,8 +26,6 @@ const MENU_ITEMS: Partial<MenuItem>[] = [
     price: 18.99,
     category: 'Main',
   },
-
-  // Appetizers
   {
     name: 'Edamame',
     description: 'Steamed soybeans with sea salt',
@@ -41,8 +38,6 @@ const MENU_ITEMS: Partial<MenuItem>[] = [
     price: 7.99,
     category: 'Appetizer',
   },
-
-  // Desserts
   {
     name: 'Mochi Ice Cream',
     description: 'Assorted flavors of ice cream wrapped in mochi',
@@ -55,8 +50,6 @@ const MENU_ITEMS: Partial<MenuItem>[] = [
     price: 8.99,
     category: 'Dessert',
   },
-
-  // Alcoholic drinks
   {
     name: 'Sake',
     description: 'Traditional Japanese rice wine',

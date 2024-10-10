@@ -30,6 +30,11 @@ export interface MenuItem {
     price: number;
 }
 
+export interface IMutation {
+    lockTable(customerId: string, tableId: string): TableOperationResult | Promise<TableOperationResult>;
+    unlockTable(tableId: string): TableOperationResult | Promise<TableOperationResult>;
+}
+
 export interface IQuery {
     bill(_id: string): Bill | Promise<Bill>;
     bills(): Bill[] | Promise<Bill[]>;
@@ -37,7 +42,7 @@ export interface IQuery {
     getStaff(id: string): Nullable<Staff> | Promise<Nullable<Staff>>;
     menuItem(_id: string): Nullable<MenuItem> | Promise<Nullable<MenuItem>>;
     menuItems(): MenuItem[] | Promise<MenuItem[]>;
-    table(_id: string): Table | Promise<Table>;
+    table(id: string): Table | Promise<Table>;
     tables(): Table[] | Promise<Table[]>;
 }
 
@@ -51,8 +56,15 @@ export interface Table {
     _id: string;
     capacity: number;
     currentBillId?: Nullable<string>;
+    customerId?: Nullable<string>;
     isOccupied: boolean;
     number: number;
+}
+
+export interface TableOperationResult {
+    message: string;
+    success: boolean;
+    table?: Nullable<Table>;
 }
 
 export type DateTime = any;

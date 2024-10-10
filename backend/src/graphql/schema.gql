@@ -29,6 +29,11 @@ type MenuItem {
   price: Float!
 }
 
+type Mutation {
+  lockTable(customerId: ID!, tableId: ID!): TableOperationResult!
+  unlockTable(tableId: ID!): TableOperationResult!
+}
+
 type Query {
   bill(_id: String!): Bill!
   bills: [Bill!]!
@@ -36,7 +41,7 @@ type Query {
   getStaff(id: ID!): Staff
   menuItem(_id: ID!): MenuItem
   menuItems: [MenuItem!]!
-  table(_id: String!): Table!
+  table(id: ID!): Table!
   tables: [Table!]!
 }
 
@@ -50,6 +55,13 @@ type Table {
   _id: ID!
   capacity: Int!
   currentBillId: ID
+  customerId: ID
   isOccupied: Boolean!
   number: Int!
+}
+
+type TableOperationResult {
+  message: String!
+  success: Boolean!
+  table: Table
 }
