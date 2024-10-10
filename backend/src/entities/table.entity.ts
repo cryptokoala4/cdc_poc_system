@@ -1,9 +1,6 @@
+import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
-import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { Bill } from './bill.entity';
-
-export type TableDocument = Table & Document;
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 @ObjectType()
 @Schema()
@@ -11,17 +8,22 @@ export class Table {
   @Field(() => ID)
   _id: string;
 
-  @Field()
-  @Prop({ required: true, unique: true })
+  @Field(() => Int)
+  @Prop()
   number: number;
 
-  @Field(() => Bill, { nullable: true })
-  @Prop({ type: Types.ObjectId, ref: 'Bill' })
-  currentBill: Types.ObjectId;
+  @Field(() => Int)
+  @Prop()
+  capacity: number;
 
   @Field()
-  @Prop({ required: true, default: false })
+  @Prop({ default: false })
   isOccupied: boolean;
+
+  @Field(() => ID, { nullable: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Bill', default: null })
+  currentBillId: string | null;
 }
 
+export type TableDocument = Table & Document;
 export const TableSchema = SchemaFactory.createForClass(Table);

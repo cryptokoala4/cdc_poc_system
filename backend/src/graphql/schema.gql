@@ -23,6 +23,8 @@ scalar DateTime
 
 type MenuItem {
   _id: ID!
+  category: String!
+  description: String!
   name: String!
   price: Float!
 }
@@ -30,15 +32,24 @@ type MenuItem {
 type Query {
   bill(_id: String!): Bill!
   bills: [Bill!]!
+  getAllStaff: [Staff!]!
+  getStaff(id: ID!): Staff
   menuItem(_id: ID!): MenuItem
   menuItems: [MenuItem!]!
   table(_id: String!): Table!
   tables: [Table!]!
 }
 
+type Staff {
+  _id: ID!
+  name: String!
+  role: String!
+}
+
 type Table {
   _id: ID!
-  currentBill: Bill
+  capacity: Int!
+  currentBillId: ID
   isOccupied: Boolean!
-  number: Float!
+  number: Int!
 }

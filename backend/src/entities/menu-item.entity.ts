@@ -13,9 +13,17 @@ export class MenuItem {
   @Prop({ required: true })
   name: string;
 
+  @Field()
+  @Prop({ required: true })
+  description: string;
+
   @Field(() => Float)
   @Prop({ required: true })
   price: number;
+
+  @Field()
+  @Prop({ required: true })
+  category: string;
 }
 
 export type MenuItemDocument = MenuItem & Document;

@@ -7,7 +7,7 @@ async function bootstrap() {
   });
   // Enable CORS
   app.enableCors({
-    origin: 'http://localhost:3001', // Allow requests from your Next.js frontend
+    origin: 'http://localhost:3001',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

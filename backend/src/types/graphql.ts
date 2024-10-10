@@ -24,6 +24,8 @@ export interface BillItem {
 
 export interface MenuItem {
     _id: string;
+    category: string;
+    description: string;
     name: string;
     price: number;
 }
@@ -31,15 +33,24 @@ export interface MenuItem {
 export interface IQuery {
     bill(_id: string): Bill | Promise<Bill>;
     bills(): Bill[] | Promise<Bill[]>;
+    getAllStaff(): Staff[] | Promise<Staff[]>;
+    getStaff(id: string): Nullable<Staff> | Promise<Nullable<Staff>>;
     menuItem(_id: string): Nullable<MenuItem> | Promise<Nullable<MenuItem>>;
     menuItems(): MenuItem[] | Promise<MenuItem[]>;
     table(_id: string): Table | Promise<Table>;
     tables(): Table[] | Promise<Table[]>;
 }
 
+export interface Staff {
+    _id: string;
+    name: string;
+    role: string;
+}
+
 export interface Table {
     _id: string;
-    currentBill?: Nullable<Bill>;
+    capacity: number;
+    currentBillId?: Nullable<string>;
     isOccupied: boolean;
     number: number;
 }
