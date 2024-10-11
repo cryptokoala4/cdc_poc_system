@@ -151,7 +151,7 @@ const TableManagement = () => {
     const orderItems = currentOrder.map((item) => ({
       itemId: item._id,
       quantity: item.quantity,
-      price: item.price, // Include the price
+      price: item.price,
     }));
 
     console.log(orderItems)

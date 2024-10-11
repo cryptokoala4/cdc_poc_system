@@ -17,9 +17,10 @@ export class Bill {
   @Prop({ required: true })
   username: string;
 
-  // @Field(() => [ID])
-  // @Prop({ type: [{ type: Types.ObjectId, ref: 'Order' }] })
-  // orders: Types.ObjectId[];
+  @Field(() => [ID])
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Order' }] })
+  orderIds: Types.ObjectId[];
+
   @Field(() => [Order])
   orders: Order[];
 
@@ -30,14 +31,6 @@ export class Bill {
   @Field()
   @Prop({ required: true, enum: ['Open', 'Closed'], default: 'Open' })
   status: string;
-
-  @Field(() => Date, { nullable: true })
-  @Prop()
-  paidAt?: Date;
-
-  @Field({ nullable: true })
-  @Prop()
-  paymentMethod?: string;
 }
 
 export type BillDocument = Bill & Document;

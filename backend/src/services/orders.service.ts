@@ -41,7 +41,7 @@ export class OrdersService {
 
       let bill: BillDocument;
 
-      if (!table.isOccupied) {
+      if (!table.isOccupied || !table.currentBillId) {
         bill = new this.billModel({
           tableId: table._id,
           username,
@@ -79,10 +79,18 @@ export class OrdersService {
       const savedOrder = await newOrder.save();
 
       this.logger.debug(`Saved order: ${JSON.stringify(savedOrder)}`);
-      // TODO: Fix
-      // bill.orders.push(savedOrder);
+
+      // Add the order to the bill's orderIds array
+      bill.orderIds.push(savedOrder._id);
       bill.totalAmount += savedOrder.totalAmount;
       await bill.save();
+
+      // Ensure the table has the correct currentBillId
+      if (table.currentBillId?.toString() !== bill._id.toString()) {
+        await this.tableModel.findByIdAndUpdate(table._id, {
+          currentBillId: bill._id,
+        });
+      }
 
       return {
         success: true,
@@ -158,13 +166,11 @@ export class OrdersService {
         };
       }
 
-      // Calculate the new total amount
       const newTotalAmount = updateOrderDto.items.reduce(
         (total, item) => total + item.price * item.quantity,
         0,
       );
 
-      // Update the order
       const updatedOrder = await this.orderModel
         .findByIdAndUpdate(
           new Types.ObjectId(_id),

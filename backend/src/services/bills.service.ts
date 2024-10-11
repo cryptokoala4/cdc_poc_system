@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Bill, BillDocument } from '../entities/bill.entity';
 import { Table } from '../entities/table.entity';
 import { ServiceResponse } from '../interfaces/service-response.interface';
 import { CreateBillDto } from '../dto/create-bill.dto';
 import { UpdateBillDto } from '../dto/update-bill.dto';
 import { MenuItem } from '../entities/menu-item.entity';
+import { Order, OrderDocument } from '../entities/order.entity';
 
 @Injectable()
 export class BillsService {
@@ -14,36 +15,36 @@ export class BillsService {
     @InjectModel(Bill.name) private billModel: Model<BillDocument>,
     @InjectModel(Table.name) private tableModel: Model<Table>,
     @InjectModel(MenuItem.name) private menuItemModel: Model<MenuItem>,
+    @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
   ) {}
 
-  // async getCurrentBillForTable(tableId: string): Promise<Bill | null> {
-  //   const bill = await this.billModel
-  //     .findOne({
-  //       tableId: tableId,
-  //       status: 'Open',
-  //     })
-  //     .populate('orders')
-  //     .exec();
-
-  //   return bill;
-  // }
-
   async getCurrentBillForTable(tableId: string): Promise<Bill | null> {
-    const bill = await this.billModel
-      .findOne({
-        tableId: tableId,
-        status: 'Open',
-      })
-      .populate({
-        path: 'orders',
-        populate: {
-          path: 'items.itemId',
-          model: 'Item',
-        },
-      })
-      .exec();
+    console.log('Getting bill for table:', tableId);
 
-    return bill;
+    try {
+      const bill = await this.billModel
+        .findOne({
+          tableId: new Types.ObjectId(tableId),
+          status: 'Open',
+        })
+        .exec();
+
+      console.log('Found bill:', JSON.stringify(bill, null, 2));
+
+      if (bill) {
+        const populatedOrders = await this.orderModel
+          .find({ _id: { $in: bill.orderIds } })
+          .exec();
+
+        // Manually set the orders field to the populated orders
+        bill.orders = populatedOrders;
+      }
+
+      return bill;
+    } catch (error) {
+      console.error('Error in getCurrentBillForTable:', error);
+      return null;
+    }
   }
 
   async createBill(

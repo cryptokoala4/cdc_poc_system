@@ -56,6 +56,7 @@ export const GET_CURRENT_BILL = gql`
     getCurrentBillForTable(tableId: $tableId) {
       _id
       tableId
+      username
       orders {
         _id
         items {
@@ -67,8 +68,6 @@ export const GET_CURRENT_BILL = gql`
       }
       totalAmount
       status
-      createdAt
-      updatedAt
     }
   }
 `;

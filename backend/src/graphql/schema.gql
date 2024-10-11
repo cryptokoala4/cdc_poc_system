@@ -28,11 +28,10 @@ type Bill {
   _id: ID!
   tableId: ID!
   username: String!
+  orderIds: [ID!]!
   orders: [Order!]!
   totalAmount: Float!
   status: String!
-  paidAt: DateTime
-  paymentMethod: String
 }
 
 type Table {
