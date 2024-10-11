@@ -109,6 +109,7 @@ type Mutation {
   createBill(createBillInput: CreateBillDto!): BillOperationResult!
   updateBill(id: ID!, updateBillInput: UpdateBillDto!): BillOperationResult!
   settleBill(id: ID!): BillOperationResult!
+  removeOrderFromBill(billId: ID!, orderId: ID!): BillOperationResult!
   deleteBill(id: ID!): BillOperationResult!
   lockTable(tableId: ID!, username: String!): TableOperationResult!
   unlockTable(tableId: ID!, username: String!): TableOperationResult!

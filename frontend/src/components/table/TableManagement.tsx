@@ -13,7 +13,7 @@ import {
   CREATE_BILL,
   UPDATE_BILL,
   // ADD_ORDER_TO_BILL,
-  // REMOVE_ORDER_FROM_BILL,
+  REMOVE_ORDER_FROM_BILL,
 } from "../../graphql/mutations";
 import { GET_CURRENT_BILL } from "../../graphql/queries";
 
@@ -40,7 +40,7 @@ const TableManagement = () => {
   const [createBill] = useMutation(CREATE_BILL);
   const [updateBill] = useMutation(UPDATE_BILL);
   // const [addOrderToBill] = useMutation(ADD_ORDER_TO_BILL);
-  // const [removeOrderFromBill] = useMutation(REMOVE_ORDER_FROM_BILL);
+  const [removeOrderFromBill] = useMutation(REMOVE_ORDER_FROM_BILL);
 
   const {
     data: billData,
@@ -188,15 +188,13 @@ const TableManagement = () => {
       });
 
       if (data.updateOrder.success) {
-        // Handle successful update (e.g., show a success message)
         console.log("Order updated successfully");
       } else {
-        // Handle update failure
         console.error("Failed to update order:", data.updateOrder.message);
       }
     } catch (error) {
       console.error("Error updating order:", error);
-      // Handle error (e.g., show an error message to the user)
+      // TODO: implement toastbox for error handlin
     }
   };
 
@@ -214,7 +212,6 @@ const TableManagement = () => {
       });
       setCurrentBillId(data.createBill._id);
       refetchBill();
-      // Reset the table state
       await unlockTable(currentTable, currentStaff.username);
       await fetchTables();
       setCurrentTable(null);
@@ -223,22 +220,31 @@ const TableManagement = () => {
       // TODO: implement toastbox for error handling
     }
   };
-
   const handlePayBill = async () => {
     if (!currentBillId) return;
 
     try {
-      await updateBill({
+      const { data } = await updateBill({
         variables: {
+          id: currentBillId,
           updateBillInput: {
-            billId: currentBillId,
-            status: "PAID",
+            status: "Closed",
+            paidAt: new Date().toISOString(),
           },
         },
       });
-      setCurrentBillId(null);
-      setCurrentOrderId(null);
-      refetchBill();
+
+      if (data.updateBill.success) {
+        console.log("Bill paid successfully");
+        setCurrentBillId(null);
+        setCurrentOrderId(null);
+        await unlockTable(currentTable, currentStaff.username);
+        await fetchTables();
+        setCurrentTable(null);
+        refetchBill();
+      } else {
+        console.error("Failed to pay bill:", data.updateBill.message);
+      }
     } catch (error) {
       console.error("Error paying bill:", error);
       // TODO: implement toastbox for error handling
@@ -263,10 +269,22 @@ const TableManagement = () => {
     if (!billData?.getCurrentBillForTable) return;
 
     try {
-      await removeOrderFromBill({
-        variables: { billId: billData.getCurrentBillForTable._id, orderId },
+      const { data } = await removeOrderFromBill({
+        variables: {
+          billId: billData.getCurrentBillForTable._id,
+          orderId,
+        },
       });
-      refetchBill();
+
+      if (data.removeOrderFromBill.success) {
+        console.log("Order removed from bill successfully");
+        refetchBill();
+      } else {
+        console.error(
+          "Failed to remove order from bill:",
+          data.removeOrderFromBill.message
+        );
+      }
     } catch (error) {
       console.error("Error removing order from bill:", error);
       // TODO: implement toastbox for error handling

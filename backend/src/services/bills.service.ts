@@ -169,6 +169,53 @@ export class BillsService {
     };
   }
 
+  async removeOrderFromBill(
+    billId: string,
+    orderId: string,
+  ): Promise<ServiceResponse<Bill>> {
+    try {
+      const bill = await this.billModel.findById(billId);
+      if (!bill) {
+        return { success: false, message: 'Bill not found', data: null };
+      }
+
+      const orderIndex = bill.orderIds.indexOf(new Types.ObjectId(orderId));
+      if (orderIndex === -1) {
+        return {
+          success: false,
+          message: 'Order not found in this bill',
+          data: null,
+        };
+      }
+
+      bill.orderIds.splice(orderIndex, 1);
+
+      // Recalculate total amount
+      const orders = await this.orderModel.find({
+        _id: { $in: bill.orderIds },
+      });
+      bill.totalAmount = orders.reduce(
+        (total, order) => total + order.totalAmount,
+        0,
+      );
+
+      await bill.save();
+
+      return {
+        success: true,
+        message: 'Order removed from bill successfully',
+        data: bill,
+      };
+    } catch (error) {
+      console.error('Error removing order from bill:', error);
+      return {
+        success: false,
+        message: 'Failed to remove order from bill',
+        data: null,
+      };
+    }
+  }
+
   async deleteBill(_id: string): Promise<ServiceResponse<null>> {
     const result = await this.billModel.deleteOne({ _id: _id }).exec();
     if (result.deletedCount === 0) {

@@ -91,6 +91,22 @@ export class BillsResolver {
   }
 
   @Mutation(() => BillOperationResult)
+  async removeOrderFromBill(
+    @Args('billId', { type: () => ID }) billId: string,
+    @Args('orderId', { type: () => ID }) orderId: string,
+  ): Promise<BillOperationResult> {
+    const response = await this.billsService.removeOrderFromBill(
+      billId,
+      orderId,
+    );
+    return {
+      success: response.success,
+      message: response.message,
+      bill: response.data,
+    };
+  }
+
+  @Mutation(() => BillOperationResult)
   async deleteBill(
     @Args('id', { type: () => ID }) id: string,
   ): Promise<BillOperationResult> {

@@ -120,15 +120,32 @@ export const CREATE_BILL = gql`
 `;
 
 export const UPDATE_BILL = gql`
-  mutation UpdateBill($_id: ID!, $status: BillStatus!) {
-    updateBill(_id: $_id, status: $status) {
-      _id
-      tableId
-      orderId
-      username
-      totalAmount
-      status
-      updatedAt
+  mutation UpdateBill($id: ID!, $updateBillInput: UpdateBillDto!) {
+    updateBill(id: $id, updateBillInput: $updateBillInput) {
+      success
+      message
+      bill {
+        _id
+        tableId
+        orderIds
+        username
+        totalAmount
+        status
+      }
+    }
+  }
+`;
+
+export const REMOVE_ORDER_FROM_BILL = gql`
+  mutation RemoveOrderFromBill($billId: ID!, $orderId: ID!) {
+    removeOrderFromBill(billId: $billId, orderId: $orderId) {
+      success
+      message
+      bill {
+        _id
+        orderIds
+        totalAmount
+      }
     }
   }
 `;
