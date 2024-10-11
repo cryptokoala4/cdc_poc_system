@@ -1,35 +1,108 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Staff, StaffDocument } from '../entities/staff.entity';
+import { ServiceResponse } from '../interfaces/service-response.interface';
 
 @Injectable()
 export class StaffService {
-  constructor(@InjectModel('Staff') private staffModel: Model<StaffDocument>) {}
+  constructor(
+    @InjectModel(Staff.name) private staffModel: Model<StaffDocument>,
+  ) {}
 
-  async findAll(): Promise<Staff[]> {
-    return this.staffModel.find().exec();
+  async findAll(): Promise<ServiceResponse<Staff[]>> {
+    try {
+      const staff = await this.staffModel.find().exec();
+      return {
+        success: true,
+        message: 'Staff members retrieved successfully',
+        data: staff,
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Failed to retrieve staff members',
+        data: [],
+      };
+    }
   }
 
-  async findOne(id: string): Promise<Staff | null> {
-    return this.staffModel.findById(id).exec();
+  async findOne(_id: string): Promise<ServiceResponse<Staff | null>> {
+    try {
+      const staff = await this.staffModel
+        .findById(new Types.ObjectId(_id))
+        .exec();
+      if (!staff) {
+        return {
+          success: false,
+          message: `Staff member with ID ${_id} not found`,
+          data: null,
+        };
+      }
+      return {
+        success: true,
+        message: 'Staff member found successfully',
+        data: staff,
+      };
+    } catch {
+      return {
+        success: false,
+        message: `Failed to find staff member with ID ${_id}`,
+        data: null,
+      };
+    }
   }
 
-  async create(createStaffInput: Partial<Staff>): Promise<Staff> {
-    const newStaff = new this.staffModel(createStaffInput);
-    return newStaff.save();
+  async findByUsername(
+    username: string,
+  ): Promise<ServiceResponse<Staff | null>> {
+    try {
+      const staff = await this.staffModel.findOne({ username }).exec();
+      if (!staff) {
+        return {
+          success: false,
+          message: `Staff member with username ${username} not found`,
+          data: null,
+        };
+      }
+      return {
+        success: true,
+        message: 'Staff member found successfully',
+        data: staff,
+      };
+    } catch {
+      return {
+        success: false,
+        message: `Failed to find staff member with username ${username}`,
+        data: null,
+      };
+    }
   }
 
-  async update(
-    id: string,
-    updateStaffInput: Partial<Staff>,
-  ): Promise<Staff | null> {
-    return this.staffModel
-      .findByIdAndUpdate(id, updateStaffInput, { new: true })
-      .exec();
-  }
-
-  async remove(id: string): Promise<Staff | null> {
-    return this.staffModel.findByIdAndDelete(id).exec();
+  async validateStaff(
+    username: string,
+    password: string,
+  ): Promise<ServiceResponse<Staff | null>> {
+    try {
+      const staff = await this.staffModel.findOne({ username }).exec();
+      if (!staff || staff.password !== password) {
+        return {
+          success: false,
+          message: 'Invalid username or password',
+          data: null,
+        };
+      }
+      return {
+        success: true,
+        message: 'Staff member validated successfully',
+        data: staff,
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Failed to validate staff member',
+        data: null,
+      };
+    }
   }
 }

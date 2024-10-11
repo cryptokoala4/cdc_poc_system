@@ -64,7 +64,9 @@ const MENU_ITEMS: Partial<MenuItem>[] = [
   },
 ];
 
-export async function seedMenuItems(menuItemModel: Model<MenuItemDocument>) {
+export async function seedMenuItems(
+  menuItemModel: Model<MenuItemDocument>,
+): Promise<void> {
   try {
     console.log('Starting menu seed process...');
     const count = await menuItemModel.countDocuments();
@@ -79,5 +81,6 @@ export async function seedMenuItems(menuItemModel: Model<MenuItemDocument>) {
     }
   } catch (error) {
     console.error('Error during menu seeding:', error);
+    throw error;
   }
 }

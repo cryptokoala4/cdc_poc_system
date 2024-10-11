@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Table, TableDocument } from '../entities/table.entity';
-import { ServiceResponse } from '../interfaces/service-response.interface';
+import { ServiceResponse } from 'src/interfaces/service-response.interface';
 
 @Injectable()
 export class TablesService {
@@ -10,81 +10,165 @@ export class TablesService {
     @InjectModel(Table.name) private tableModel: Model<TableDocument>,
   ) {}
 
-  async findAll(): Promise<ServiceResponse<Table[]>> {
-    const tables = await this.tableModel.find().exec();
-    return {
-      success: true,
-      message: 'Tables retrieved successfully',
-      data: tables,
-    };
+  async getTableStatus(
+    tableId: string,
+  ): Promise<ServiceResponse<Table | null>> {
+    try {
+      const table = await this.tableModel.findById(tableId).exec();
+      if (!table) {
+        return {
+          success: false,
+          message: `Table with ID ${tableId} not found`,
+          data: null,
+        };
+      }
+      return {
+        success: true,
+        message: 'Table status retrieved successfully',
+        data: table,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Error retrieving table status: ${error.message}`,
+        data: null,
+      };
+    }
   }
 
-  async findOne(_id: string): Promise<ServiceResponse<Table>> {
-    const table = await this.tableModel
-      .findById(new Types.ObjectId(_id))
-      .exec();
-    if (!table) {
-      throw new NotFoundException(`Table with ID ${_id} not found`);
+  async findAll(): Promise<ServiceResponse<Table[]>> {
+    try {
+      const tables = await this.tableModel.find().exec();
+      return {
+        success: true,
+        message: 'All tables retrieved successfully',
+        data: tables,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Error retrieving tables: ${error.message}`,
+        data: [],
+      };
     }
-    return {
-      success: true,
-      message: `Table ${table.number} found successfully`,
-      data: table,
-    };
+  }
+
+  async findOne(id: string): Promise<ServiceResponse<Table | null>> {
+    try {
+      const table = await this.tableModel
+        .findById(new Types.ObjectId(id))
+        .exec();
+      if (!table) {
+        return {
+          success: false,
+          message: `Table with ID ${id} not found`,
+          data: null,
+        };
+      }
+      return {
+        success: true,
+        message: 'Table found successfully',
+        data: table,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Error finding table: ${error.message}`,
+        data: null,
+      };
+    }
   }
 
   async lockTable(
     tableId: string,
-    customerId: string,
-  ): Promise<ServiceResponse<Table>> {
-    const table = await this.tableModel
-      .findById(new Types.ObjectId(tableId))
-      .exec();
+    username: string,
+  ): Promise<ServiceResponse<Table | null>> {
+    try {
+      const table = await this.tableModel
+        .findById(new Types.ObjectId(tableId))
+        .exec();
+      if (!table) {
+        return {
+          success: false,
+          message: `Table with ID ${tableId} not found`,
+          data: null,
+        };
+      }
 
-    if (!table) {
-      throw new NotFoundException(`Table with ID ${tableId} not found`);
-    }
+      if (table.lockedBy) {
+        if (table.lockedBy === username) {
+          return {
+            success: true,
+            message: 'Table already locked by you',
+            data: table,
+          };
+        } else {
+          return {
+            success: false,
+            message: 'Table is already in use by another user',
+            data: null,
+          };
+        }
+      }
 
-    if (table.isOccupied) {
+      table.lockedBy = username;
+      table.lockedAt = new Date();
+      await table.save();
+
       return {
-        success: false,
-        message: `Table ${table.number} is already occupied`,
+        success: true,
+        message: 'Table locked successfully',
         data: table,
       };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Error locking table: ${error.message}`,
+        data: null,
+      };
     }
-
-    table.isOccupied = true;
-    table.customerId = customerId;
-    const updatedTable = await table.save();
-
-    return {
-      success: true,
-      message: `Table ${table.number} has been successfully locked and assigned to a customer`,
-      data: updatedTable,
-    };
   }
 
-  async unlockTable(tableId: string): Promise<ServiceResponse<Table>> {
-    const table = await this.tableModel
-      .findById(new Types.ObjectId(tableId))
-      .exec();
+  async unlockTable(
+    tableId: string,
+    username: string,
+  ): Promise<ServiceResponse<Table | null>> {
+    try {
+      const table = await this.tableModel
+        .findById(new Types.ObjectId(tableId))
+        .exec();
+      if (!table) {
+        return {
+          success: false,
+          message: `Table with ID ${tableId} not found`,
+          data: null,
+        };
+      }
 
-    if (!table) {
-      throw new NotFoundException(`Table with ID ${tableId} not found`);
+      if (!table.lockedBy || table.lockedBy !== username) {
+        return {
+          success: false,
+          message: 'Table is not locked by you',
+          data: null,
+        };
+      }
+
+      table.lockedBy = null;
+      table.lockedAt = null;
+      table.isOccupied = false;
+      await table.save();
+
+      return {
+        success: true,
+        message: 'Table unlocked and marked as unoccupied successfully',
+        data: table,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Error unlocking table: ${error.message}`,
+        data: null,
+      };
     }
-
-    const updatedTable = await this.tableModel
-      .findOneAndUpdate(
-        { _id: new Types.ObjectId(tableId) },
-        { isOccupied: false, customerId: null, currentBillId: null },
-        { new: true },
-      )
-      .exec();
-
-    return {
-      success: true,
-      message: `Table ${table.number} has been successfully unlocked`,
-      data: updatedTable,
-    };
   }
 }

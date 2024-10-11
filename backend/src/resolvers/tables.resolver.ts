@@ -13,10 +13,10 @@ import { NotFoundException } from '@nestjs/common';
 
 @ObjectType()
 class TableOperationResult {
-  @Field()
+  @Field(() => Boolean)
   success: boolean;
 
-  @Field()
+  @Field(() => String)
   message: string;
 
   @Field(() => Table, { nullable: true })
@@ -30,29 +30,33 @@ export class TablesResolver {
   @Query(() => [Table])
   async tables() {
     const response = await this.tablesService.findAll();
-    return response.data;
+    return response.data || [];
   }
 
   @Query(() => Table)
   async table(@Args('id', { type: () => ID }) id: string) {
     const response = await this.tablesService.findOne(id);
+    if (!response.data) {
+      throw new NotFoundException(`Table with ID ${id} not found`);
+    }
     return response.data;
   }
 
   @Mutation(() => TableOperationResult)
   async lockTable(
     @Args('tableId', { type: () => ID }) tableId: string,
-    @Args('customerId', { type: () => ID }) customerId: string,
+    @Args('username', { type: () => String }) username: string,
   ): Promise<TableOperationResult> {
     try {
-      const response = await this.tablesService.lockTable(tableId, customerId);
-      console.log(response.message);
+      const response = await this.tablesService.lockTable(tableId, username);
+      console.log(`Resolver: Lock table response:`, response);
       return {
         success: response.success,
         message: response.message,
         table: response.data,
       };
     } catch (error) {
+      console.error(`Resolver: Error locking table:`, error);
       if (error instanceof NotFoundException) {
         return {
           success: false,
@@ -67,10 +71,10 @@ export class TablesResolver {
   @Mutation(() => TableOperationResult)
   async unlockTable(
     @Args('tableId', { type: () => ID }) tableId: string,
+    @Args('username', { type: () => String }) username: string,
   ): Promise<TableOperationResult> {
     try {
-      const response = await this.tablesService.unlockTable(tableId);
-      console.log(response.message);
+      const response = await this.tablesService.unlockTable(tableId, username);
       return {
         success: response.success,
         message: response.message,

@@ -1,15 +1,42 @@
 import { Model } from 'mongoose';
 import { Staff, StaffDocument } from '../entities/staff.entity';
 
-const STAFF_DATA: Partial<Staff>[] = [
-  { name: 'Hiroshi Tanaka', role: 'Waiter' },
-  { name: 'Yuki Sato', role: 'Waiter' },
-  { name: 'Kenji Nakamura', role: 'Waiter' },
-  { name: 'Akiko Yamamoto', role: 'Waiter' },
-  { name: 'Takeshi Suzuki', role: 'Manager' },
+const STAFF_DATA: Omit<Staff, '_id'>[] = [
+  {
+    name: 'Hiroshi Tanaka',
+    username: 'htanaka',
+    role: 'Waiter',
+    password: 'pass01',
+  },
+  {
+    name: 'Yuki Sato',
+    username: 'ysato',
+    role: 'Waiter',
+    password: 'pass02',
+  },
+  {
+    name: 'Kenji Nakamura',
+    username: 'knakamura',
+    role: 'Waiter',
+    password: 'pass03',
+  },
+  {
+    name: 'Akiko Yamamoto',
+    username: 'ayamamoto',
+    role: 'Waiter',
+    password: 'pass04',
+  },
+  {
+    name: 'Takeshi Suzuki',
+    username: 'tsuzuki',
+    role: 'Manager',
+    password: 'pass05',
+  },
 ];
 
-export async function seedStaff(staffModel: Model<StaffDocument>) {
+export async function seedStaff(
+  staffModel: Model<StaffDocument>,
+): Promise<void> {
   try {
     console.log('Starting staff seed process...');
     const count = await staffModel.countDocuments();
@@ -24,5 +51,6 @@ export async function seedStaff(staffModel: Model<StaffDocument>) {
     }
   } catch (error) {
     console.error('Error during staff seeding:', error);
+    throw error;
   }
 }

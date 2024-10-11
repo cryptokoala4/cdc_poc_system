@@ -1,20 +1,40 @@
-import { Resolver, Query, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Args, ID, ObjectType, Field } from '@nestjs/graphql';
 import { MenuItemsService } from '../services/menu-items.service';
 import { MenuItem } from '../entities/menu-item.entity';
+
+@ObjectType()
+class MenuItemOperationResult {
+  @Field(() => Boolean)
+  success: boolean;
+
+  @Field(() => String)
+  message: string;
+
+  @Field(() => MenuItem, { nullable: true })
+  menuItem: MenuItem | null;
+}
 
 @Resolver(() => MenuItem)
 export class MenuItemsResolver {
   constructor(private readonly menuItemsService: MenuItemsService) {}
 
   @Query(() => [MenuItem])
-  async menuItems(): Promise<MenuItem[]> {
-    return this.menuItemsService.findAll();
+  async menuItems() {
+    const response = await this.menuItemsService.findAll();
+    return response.data;
   }
 
-  @Query(() => MenuItem, { nullable: true })
+  @Query(() => MenuItemOperationResult)
   async menuItem(
-    @Args('_id', { type: () => ID }) _id: string,
-  ): Promise<MenuItem | null> {
-    return this.menuItemsService.findOne(_id);
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<MenuItemOperationResult> {
+    const response = await this.menuItemsService.findOne(id);
+    return {
+      success: !!response.data,
+      message: response.data
+        ? 'MenuItem found successfully'
+        : `MenuItem with ID ${id} not found`,
+      menuItem: response.data,
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
-import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { MenuItem } from './menu-item.entity';
+import { Document, Schema as MongooseSchema } from 'mongoose';
+import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
+import { OrderItem } from './shared-types';
 
 export type BillDocument = Bill & Document;
 
@@ -9,41 +9,47 @@ export type BillDocument = Bill & Document;
 @Schema()
 export class Bill {
   @Field(() => ID)
-  _id: string;
+  _id: MongooseSchema.Types.ObjectId;
+
+  @Field(() => ID)
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Table' })
+  tableId: MongooseSchema.Types.ObjectId;
 
   @Field()
   @Prop({ required: true })
-  tableNumber: number;
+  username: string;
 
-  @Field(() => [BillItem])
-  @Prop([
-    {
-      menuItem: { type: Types.ObjectId, ref: 'MenuItem' },
-      quantity: { type: Number, required: true },
-    },
-  ])
-  items: BillItem[];
+  @Field(() => [ID])
+  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Order' }] })
+  orderIds: MongooseSchema.Types.ObjectId[];
+
+  @Field(() => [OrderItem])
+  @Prop({ type: [{ itemId: MongooseSchema.Types.ObjectId, quantity: Number }] })
+  orderItems: OrderItem[];
+
+  @Field(() => Float)
+  @Prop({ required: true })
+  totalAmount: number;
 
   @Field()
-  @Prop({ required: true, default: false })
-  isFinalized: boolean;
+  @Prop({ required: true, enum: ['Open', 'Closed', 'Paid'], default: 'Open' })
+  status: string;
 
-  @Field()
-  @Prop({ required: true, default: Date.now })
-  createdAt: Date;
+  @Field(() => Date, { nullable: true })
+  @Prop()
+  paidAt?: Date;
 
   @Field({ nullable: true })
   @Prop()
-  finalizedAt?: Date;
-}
+  paymentMethod?: string;
 
-@ObjectType()
-class BillItem {
-  @Field(() => MenuItem)
-  menuItem: MenuItem;
+  @Field(() => Date)
+  @Prop({ default: Date.now })
+  createdAt: Date;
 
-  @Field()
-  quantity: number;
+  @Field(() => Date)
+  @Prop({ default: Date.now })
+  updatedAt: Date;
 }
 
 export const BillSchema = SchemaFactory.createForClass(Bill);

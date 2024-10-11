@@ -10,18 +10,24 @@ import { seedStaff } from './staff.seed';
 import { seedTables } from './tables.seed';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const menuItemModel = app.get<Model<MenuItemDocument>>(
-    getModelToken(MenuItem.name),
-  );
-  const staffModel = app.get<Model<StaffDocument>>(getModelToken(Staff.name));
-  const tableModel = app.get<Model<TableDocument>>(getModelToken(Table.name));
+  try {
+    const app = await NestFactory.create(AppModule);
+    const menuItemModel = app.get<Model<MenuItemDocument>>(
+      getModelToken(MenuItem.name),
+    );
+    const staffModel = app.get<Model<StaffDocument>>(getModelToken(Staff.name));
+    const tableModel = app.get<Model<TableDocument>>(getModelToken(Table.name));
 
-  await seedMenuItems(menuItemModel);
-  await seedStaff(staffModel);
-  await seedTables(tableModel);
+    await seedMenuItems(menuItemModel);
+    await seedStaff(staffModel);
+    await seedTables(tableModel);
 
-  await app.close();
+    await app.close();
+    console.log('Seeding completed successfully');
+  } catch (error) {
+    console.error('Error during seeding process:', error);
+    process.exit(1);
+  }
 }
 
 bootstrap();

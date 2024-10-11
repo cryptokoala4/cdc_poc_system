@@ -1,29 +1,35 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
 
 @ObjectType()
-@Schema()
+@Schema({ timestamps: true })
 export class MenuItem {
   @Field(() => ID)
-  @Prop({ type: String })
-  _id: string;
+  @Prop({ type: Types.ObjectId, auto: true })
+  _id: Types.ObjectId;
 
   @Field()
-  @Prop({ required: true })
+  @Prop({ required: true, trim: true })
   name: string;
 
   @Field()
-  @Prop({ required: true })
+  @Prop({ required: true, trim: true })
   description: string;
 
   @Field(() => Float)
-  @Prop({ required: true })
+  @Prop({ required: true, min: 0 })
   price: number;
 
   @Field()
-  @Prop({ required: true })
+  @Prop({ required: true, trim: true })
   category: string;
+
+  @Field(() => Date)
+  createdAt: Date;
+
+  @Field(() => Date)
+  updatedAt: Date;
 }
 
 export type MenuItemDocument = MenuItem & Document;

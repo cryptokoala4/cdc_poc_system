@@ -2,18 +2,23 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Bill {
-  _id: ID!
-  createdAt: DateTime!
-  finalizedAt: DateTime
-  isFinalized: Boolean!
-  items: [BillItem!]!
-  tableNumber: Float!
+type OrderItem {
+  itemId: ID!
+  quantity: Float!
 }
 
-type BillItem {
-  menuItem: MenuItem!
-  quantity: Float!
+type Bill {
+  _id: ID!
+  tableId: ID!
+  username: String!
+  orderIds: [ID!]!
+  orderItems: [OrderItem!]!
+  totalAmount: Float!
+  status: String!
+  paidAt: DateTime
+  paymentMethod: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 """
@@ -21,47 +26,127 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Table {
+  _id: ID!
+  number: Int!
+  seats: Int!
+  isOccupied: Boolean!
+  currentBillId: ID
+  lockedBy: String
+  lockedAt: DateTime
+}
+
 type MenuItem {
   _id: ID!
-  category: String!
-  description: String!
   name: String!
+  description: String!
   price: Float!
-}
-
-type Mutation {
-  lockTable(customerId: ID!, tableId: ID!): TableOperationResult!
-  unlockTable(tableId: ID!): TableOperationResult!
-}
-
-type Query {
-  bill(_id: String!): Bill!
-  bills: [Bill!]!
-  getAllStaff: [Staff!]!
-  getStaff(id: ID!): Staff
-  menuItem(_id: ID!): MenuItem
-  menuItems: [MenuItem!]!
-  table(id: ID!): Table!
-  tables: [Table!]!
+  category: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type Staff {
   _id: ID!
   name: String!
+  username: String!
   role: String!
 }
 
-type Table {
+type Order {
   _id: ID!
-  capacity: Int!
-  currentBillId: ID
-  customerId: ID
-  isOccupied: Boolean!
-  number: Int!
+  tableId: ID!
+  username: String!
+  items: [OrderItem!]!
+  totalAmount: Float!
+  status: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type MenuItemOperationResult {
+  success: Boolean!
+  message: String!
+  menuItem: MenuItem
+}
+
+type BillOperationResult {
+  success: Boolean!
+  message: String!
+  bill: Bill
 }
 
 type TableOperationResult {
-  message: String!
   success: Boolean!
+  message: String!
   table: Table
+}
+
+type StaffOperationResult {
+  success: Boolean!
+  message: String!
+  staff: Staff
+}
+
+type OrderOperationResult {
+  success: Boolean!
+  message: String!
+  order: Order
+}
+
+type Query {
+  menuItems: [MenuItem!]!
+  menuItem(id: ID!): MenuItemOperationResult!
+  bills: [Bill!]!
+  bill(id: ID!): BillOperationResult!
+  tables: [Table!]!
+  table(id: ID!): Table!
+  getAllStaff: [Staff!]!
+  getStaff(id: ID!): StaffOperationResult!
+  orders: [Order!]!
+  order(id: ID!): OrderOperationResult!
+}
+
+type Mutation {
+  createBill(createBillInput: CreateBillDto!): BillOperationResult!
+  updateBill(id: ID!, updateBillInput: UpdateBillDto!): BillOperationResult!
+  settleBill(id: ID!): BillOperationResult!
+  deleteBill(id: ID!): BillOperationResult!
+  lockTable(tableId: ID!, username: String!): TableOperationResult!
+  unlockTable(tableId: ID!, username: String!): TableOperationResult!
+  createOrder(createOrderInput: CreateOrderInput!, username: String!): OrderOperationResult!
+  updateOrder(id: ID!, updateOrderDto: UpdateOrderDto!): OrderOperationResult!
+  closeOrder(id: ID!): OrderOperationResult!
+}
+
+input CreateBillDto {
+  tableId: ID!
+  username: String!
+  orderItems: [OrderItemInput!]!
+}
+
+input OrderItemInput {
+  itemId: ID!
+  quantity: Float!
+}
+
+input UpdateBillDto {
+  orderId: ID
+  totalAmount: Float
+  status: String
+  paidAt: DateTime
+  paymentMethod: String
+}
+
+input CreateOrderInput {
+  tableId: ID!
+  username: String!
+  items: [OrderItemInput!]!
+  totalAmount: Float
+}
+
+input UpdateOrderDto {
+  items: [OrderItemInput!]
+  totalAmount: Float
+  status: String
 }

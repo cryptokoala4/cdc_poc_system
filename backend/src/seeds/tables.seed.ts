@@ -1,7 +1,36 @@
 import { Model } from 'mongoose';
-import { TableDocument } from '../entities/table.entity';
+import { Table, TableDocument } from '../entities/table.entity';
 
-export async function seedTables(tableModel: Model<TableDocument>) {
+const TABLES_DATA: Omit<Table, '_id'>[] = [
+  ...Array.from({ length: 10 }, (_, i) => ({
+    number: i + 1,
+    seats: 2,
+    isOccupied: false,
+    currentBillId: null,
+    lockedBy: null,
+    lockedAt: null,
+  })),
+  ...Array.from({ length: 4 }, (_, i) => ({
+    number: i + 11,
+    seats: 4,
+    isOccupied: false,
+    currentBillId: null,
+    lockedBy: null,
+    lockedAt: null,
+  })),
+  ...Array.from({ length: 2 }, (_, i) => ({
+    number: i + 15,
+    seats: 6,
+    isOccupied: false,
+    currentBillId: null,
+    lockedBy: null,
+    lockedAt: null,
+  })),
+];
+
+export async function seedTables(
+  tableModel: Model<TableDocument>,
+): Promise<void> {
   try {
     console.log('Starting tables seed process...');
     const count = await tableModel.countDocuments();
@@ -9,18 +38,13 @@ export async function seedTables(tableModel: Model<TableDocument>) {
 
     if (count === 0) {
       console.log('Tables collection is empty, seeding data...');
-      const tablesToCreate = Array.from({ length: 15 }, (_, i) => ({
-        number: i + 1,
-        capacity: Math.random() < 0.5 ? 2 : 4, // 50% chance of 2 or 4 seats
-        isOccupied: false,
-        currentBillId: null,
-      }));
-      await tableModel.insertMany(tablesToCreate);
-      console.log('Seeded 15 tables');
+      await tableModel.insertMany(TABLES_DATA);
+      console.log(`Seeded ${TABLES_DATA.length} tables`);
     } else {
       console.log('Tables already exist, skipping seed');
     }
   } catch (error) {
     console.error('Error during tables seeding:', error);
+    throw error;
   }
 }
