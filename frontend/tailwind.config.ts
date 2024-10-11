@@ -8,6 +8,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      animation: {
+        'spin-slow': 'spin 3s linear infinite',
+        'spin-reverse': 'spin 2s linear infinite reverse',
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
