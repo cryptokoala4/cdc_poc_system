@@ -19,15 +19,34 @@ const TableActions = ({
 }: TableActionsProps) => {
   return (
     <div className="space-y-2">
-      {!currentOrderId && (
-        <button
-          onClick={onCreateOrder}
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full"
-        >
-          Create Order
-        </button>
-      )}
-      {currentOrderId && (
+      {!currentBillId ? (
+        <>
+          {!currentOrderId && (
+            <button
+              onClick={onCreateOrder}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full"
+            >
+              Create Order
+            </button>
+          )}
+          {currentOrderId && (
+            <>
+              <button
+                onClick={onUpdateOrder}
+                className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded w-full"
+              >
+                Update Order
+              </button>
+              <button
+                onClick={onCreateBill}
+                className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full"
+              >
+                Create Bill
+              </button>
+            </>
+          )}
+        </>
+      ) : (
         <>
           <button
             onClick={onUpdateOrder}
@@ -35,23 +54,13 @@ const TableActions = ({
           >
             Update Order
           </button>
-          {!currentBillId && (
-            <button
-              onClick={onCreateBill}
-              className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full"
-            >
-              Create Bill
-            </button>
-          )}
+          <button
+            onClick={onPayBill}
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full"
+          >
+            Pay Bill
+          </button>
         </>
-      )}
-      {currentBillId && (
-        <button
-          onClick={onPayBill}
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full"
-        >
-          Pay Bill
-        </button>
       )}
       <button
         onClick={onCloseTable}

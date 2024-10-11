@@ -42,7 +42,11 @@ const TableManagement = () => {
   // const [addOrderToBill] = useMutation(ADD_ORDER_TO_BILL);
   // const [removeOrderFromBill] = useMutation(REMOVE_ORDER_FROM_BILL);
 
-  const { data: billData, loading: billLoading, refetch: refetchBill } = useQuery(GET_CURRENT_BILL, {
+  const {
+    data: billData,
+    loading: billLoading,
+    refetch: refetchBill,
+  } = useQuery(GET_CURRENT_BILL, {
     variables: { tableId: currentTable },
     skip: !currentTable,
   });
@@ -57,6 +61,22 @@ const TableManagement = () => {
       refetchBill();
     }
   }, [currentTable, refetchBill]);
+
+  useEffect(() => {
+    if (billData?.getCurrentBillForTable) {
+      setCurrentBillId(billData.getCurrentBillForTable._id);
+      const currentOrder =
+        billData.getCurrentBillForTable.orders[
+          billData.getCurrentBillForTable.orders.length - 1
+        ];
+      if (currentOrder) {
+        setCurrentOrderId(currentOrder._id);
+      }
+    } else {
+      setCurrentBillId(null);
+      setCurrentOrderId(null);
+    }
+  }, [billData]);
 
   const handleCloseTable = useCallback(async () => {
     if (currentTable && currentStaff) {
@@ -154,7 +174,7 @@ const TableManagement = () => {
       price: item.price,
     }));
 
-    console.log(orderItems)
+    console.log(orderItems);
     refetchBill();
 
     try {
@@ -181,13 +201,12 @@ const TableManagement = () => {
   };
 
   const handleCreateBill = async () => {
-    if (!currentOrderId || !currentTable || !currentStaff) return;
+    if (!currentTable || !currentStaff) return;
 
     try {
       const { data } = await createBill({
         variables: {
           createBillInput: {
-            orderId: currentOrderId,
             tableId: currentTable,
             username: currentStaff.username,
           },
@@ -195,6 +214,10 @@ const TableManagement = () => {
       });
       setCurrentBillId(data.createBill._id);
       refetchBill();
+      // Reset the table state
+      await unlockTable(currentTable, currentStaff.username);
+      await fetchTables();
+      setCurrentTable(null);
     } catch (error) {
       console.error("Error creating bill:", error);
       // TODO: implement toastbox for error handling
@@ -249,7 +272,7 @@ const TableManagement = () => {
       // TODO: implement toastbox for error handling
     }
   };
-  
+
   const handleAddItem = useCallback(
     (item: MenuItem) => {
       if (currentTable) {
@@ -275,32 +298,38 @@ const TableManagement = () => {
 
   return (
     <div className="flex h-[75vh]">
-      <div className="w-2/3 p-4 overflow-y-auto bg-gray-800">
+      <div className="w-2/3 p-4 bg-gray-800 overflow-y-auto">
         <MenuItems menuItems={menuItems} onAddItem={handleAddItem} />
       </div>
-      <div className="w-1/3 p-4 border-l border-gray-600 flex flex-col bg-gray-800">
-        <LockedTables
-          lockedTables={lockedTables}
-          currentTable={currentTable}
-          onSwitchTable={handleSwitchTable}
-        />
-              {currentTable && (
-          <>
-            {billLoading ? (
-              <p>Loading bill...</p>
-            ) : billData?.getCurrentBillForTable ? (
-              <BillSummary
-                bill={billData.getCurrentBillForTable}
-                onRemoveOrder={handleRemoveOrderFromBill}
+      <div className="w-1/3 p-4 border-l border-gray-600 bg-gray-800 flex flex-col">
+        <div className="flex-grow overflow-y-auto">
+          <LockedTables
+            lockedTables={lockedTables}
+            currentTable={currentTable}
+            onSwitchTable={handleSwitchTable}
+          />
+          {currentTable && (
+            <>
+              {billLoading ? (
+                <p>Loading bill...</p>
+              ) : billData?.getCurrentBillForTable ? (
+                <BillSummary
+                  bill={billData.getCurrentBillForTable}
+                  onRemoveOrder={handleRemoveOrderFromBill}
+                />
+              ) : (
+                <p>No active bill for this table.</p>
+              )}
+              <OrderList
+                order={currentOrder}
+                onRemoveItem={handleRemoveItem}
+                total={total}
               />
-            ) : (
-              <p>No active bill for this table.</p>
-            )}
-            <OrderList
-              order={currentOrder}
-              onRemoveItem={handleRemoveItem}
-              total={total}
-            />
+            </>
+          )}
+        </div>
+        {currentTable && (
+          <div className="mt-4">
             <TableActions
               currentOrderId={currentOrderId}
               currentBillId={currentBillId}
@@ -310,7 +339,7 @@ const TableManagement = () => {
               onPayBill={handlePayBill}
               onCloseTable={handleCloseTable}
             />
-          </>
+          </div>
         )}
       </div>
     </div>
