@@ -1,18 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTableStore } from "../store/tableStore";
 import { LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/solid";
 import TableManagement from "./table/TableManagement";
+import Header from "./Header";
 
 const TableGrid = () => {
   const { tables, fetchTables, setCurrentTable, currentTable, unlockTable } =
     useTableStore();
+  const [zoom, setZoom] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredTables, setFilteredTables] = useState(tables);
 
   useEffect(() => {
     fetchTables();
   }, [fetchTables]);
+
+  useEffect(() => {
+    setFilteredTables(
+      tables.filter(
+        (table) =>
+          table.number.toString().includes(searchTerm) ||
+          (table.lockedBy &&
+            table.lockedBy.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+    );
+  }, [tables, searchTerm]);
 
   const getTableColor = (
     isOccupied: boolean,
@@ -33,41 +48,62 @@ const TableGrid = () => {
     }
   };
 
+  const handleZoom = (direction: "in" | "out") => {
+    setZoom((prevZoom) => {
+      const newZoom = direction === "in" ? prevZoom + 0.1 : prevZoom - 0.1;
+      return Math.max(0.5, Math.min(newZoom, 1.5));
+    });
+  };
+
   return (
-    <div className="relative min-h-screen">
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 p-4">
-        {tables.map((table) => (
-          <motion.button
-            key={table._id}
-            className={`w-full aspect-square rounded-lg flex flex-col items-center justify-center text-white font-bold overflow-hidden shadow-lg
-              bg-gradient-to-br ${getTableColor(
-                table.isOccupied,
-                table.lockedBy,
-                table.currentBillId
-              )}`}
-            onClick={() => handleTableClick(table._id)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className="text-xl mb-1">Table</span>
-            <span className="text-3xl mb-1">{table.number}</span>
-            <span className="text-sm mb-2">Seats: {table.seats}</span>
-            {table.lockedBy ? (
-              <LockClosedIcon className="w-6 h-6" />
-            ) : (
-              <LockOpenIcon className="w-6 h-6" />
-            )}
-            {table.lockedBy && (
-              <span className="text-xs mt-1">Locked by: {table.lockedBy}</span>
-            )}
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 h-1 bg-white"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: currentTable === table._id ? 1 : 0 }}
-              transition={{ duration: 0.5 }}
-            />
-          </motion.button>
-        ))}
+    <>
+      <Header
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        zoom={zoom}
+        handleZoom={handleZoom}
+      />
+      <div className="min-h-screen bg-gray-900 p-4 pt-20">
+        <motion.div
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+          style={{ scale: zoom }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+          {filteredTables.map((table) => (
+            <motion.button
+              key={table._id}
+              className={`w-full aspect-square rounded-lg flex flex-col items-center justify-center text-white font-bold overflow-hidden shadow-lg relative
+                bg-gradient-to-br ${getTableColor(
+                  table.isOccupied,
+                  table.lockedBy,
+                  table.currentBillId
+                )}`}
+              onClick={() => handleTableClick(table._id)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="text-xl mb-1">Table</span>
+              <span className="text-3xl mb-1">{table.number}</span>
+              <span className="text-sm mb-2">Seats: {table.seats}</span>
+              {table.lockedBy ? (
+                <LockClosedIcon className="w-6 h-6" />
+              ) : (
+                <LockOpenIcon className="w-6 h-6" />
+              )}
+              {table.lockedBy && (
+                <span className="text-xs mt-1">
+                  Locked by: {table.lockedBy}
+                </span>
+              )}
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-1 bg-white"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: currentTable === table._id ? 1 : 0 }}
+                transition={{ duration: 0.5 }}
+              />
+            </motion.button>
+          ))}
+        </motion.div>
       </div>
       <AnimatePresence>
         {currentTable && (
@@ -101,7 +137,7 @@ const TableGrid = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 };
 
