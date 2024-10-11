@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { OrderItemInput } from './order-item.input';
+import { OrderItemInput } from '../entities/shared-types';
 
 @InputType()
 export class CreateOrderInput {

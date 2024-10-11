@@ -43,10 +43,10 @@ export class OrdersResolver {
 
   @Query(() => OrderOperationResult)
   async order(
-    @Args('id', { type: () => ID }) id: string,
+    @Args('_id', { type: () => ID }) _id: string,
   ): Promise<OrderOperationResult> {
     try {
-      const response = await this.ordersService.findOrderById(id);
+      const response = await this.ordersService.findOrderById(_id);
       return {
         success: response.success,
         message: response.message,
@@ -151,11 +151,14 @@ export class OrdersResolver {
 
   @Mutation(() => OrderOperationResult)
   async updateOrder(
-    @Args('id', { type: () => ID }) id: string,
+    @Args('_id', { type: () => ID }) _id: string,
     @Args('updateOrderDto') updateOrderDto: UpdateOrderDto,
   ): Promise<OrderOperationResult> {
     try {
-      const response = await this.ordersService.updateOrder(id, updateOrderDto);
+      const response = await this.ordersService.updateOrder(
+        _id,
+        updateOrderDto,
+      );
       return {
         success: response.success,
         message: response.message,
@@ -173,10 +176,10 @@ export class OrdersResolver {
 
   @Mutation(() => OrderOperationResult)
   async closeOrder(
-    @Args('id', { type: () => ID }) id: string,
+    @Args('_id', { type: () => ID }) _id: string,
   ): Promise<OrderOperationResult> {
     try {
-      const orderResponse = await this.ordersService.closeOrder(id);
+      const orderResponse = await this.ordersService.closeOrder(_id);
       if (!orderResponse.success) {
         return {
           success: false,

@@ -1,17 +1,17 @@
 import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { OrderItem } from './shared-types';
 
 @ObjectType()
 @Schema({ timestamps: true })
 export class Order {
   @Field(() => ID)
-  _id: MongooseSchema.Types.ObjectId;
+  _id: Types.ObjectId;
 
   @Field(() => ID)
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Table', required: true })
-  tableId: MongooseSchema.Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Table', required: true })
+  tableId: Types.ObjectId;
 
   @Field(() => String)
   @Prop({ type: String, required: true, trim: true })
@@ -20,8 +20,9 @@ export class Order {
   @Field(() => [OrderItem])
   @Prop([
     {
-      itemId: { type: MongooseSchema.Types.ObjectId, ref: 'Item' },
+      itemId: { type: Types.ObjectId, ref: 'Item' },
       quantity: Number,
+      price: Number,
     },
   ])
   items: OrderItem[];

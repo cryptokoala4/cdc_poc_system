@@ -40,3 +40,11 @@ export interface Order {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface Bill {
+  _id: number;
+  // TODO: Fix bill types
+  // name: string;
+  // price: number;
+  // quantity: number;
+}

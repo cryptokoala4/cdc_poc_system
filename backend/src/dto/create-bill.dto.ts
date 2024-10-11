@@ -1,7 +1,7 @@
 import { InputType, Field, ID } from '@nestjs/graphql';
 import { IsString, IsArray, ValidateNested, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
-import { OrderItemInput } from './order-item.input';
+import { OrderItemInput } from '../entities/shared-types';
 
 @InputType()
 export class CreateBillDto {

@@ -6,19 +6,24 @@ import useOrderStore from "../../store/orderStore";
 import { useMenuStore } from "../../store/menuStore";
 import { useStaffStore } from "../../store/staffStore";
 import { useTableLock } from "../../hooks/useTableLock";
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import {
   CREATE_ORDER,
   UPDATE_ORDER,
   CREATE_BILL,
   UPDATE_BILL,
+  // ADD_ORDER_TO_BILL,
+  // REMOVE_ORDER_FROM_BILL,
 } from "../../graphql/mutations";
+import { GET_CURRENT_BILL } from "../../graphql/queries";
+
 import OrderList from "./OrderList";
 import MenuItems from "./MenuItems";
 import TableActions from "./TableActions";
 import LockedTables from "./LockedTables";
 import { calculateTotal } from "../../utils/orderUtils";
 import { MenuItem, OrderItem } from "../../types";
+import BillSummary from "../BillSummary";
 
 const TableManagement = () => {
   const { currentTable, setCurrentTable, tables, fetchTables } =
@@ -34,11 +39,24 @@ const TableManagement = () => {
   const [updateOrder] = useMutation(UPDATE_ORDER);
   const [createBill] = useMutation(CREATE_BILL);
   const [updateBill] = useMutation(UPDATE_BILL);
+  // const [addOrderToBill] = useMutation(ADD_ORDER_TO_BILL);
+  // const [removeOrderFromBill] = useMutation(REMOVE_ORDER_FROM_BILL);
+
+  const { data: billData, loading: billLoading, refetch: refetchBill } = useQuery(GET_CURRENT_BILL, {
+    variables: { tableId: currentTable },
+    skip: !currentTable,
+  });
 
   useEffect(() => {
     fetchMenuItems();
     fetchTables();
   }, [fetchMenuItems, fetchTables]);
+
+  useEffect(() => {
+    if (currentTable) {
+      refetchBill();
+    }
+  }, [currentTable, refetchBill]);
 
   const handleCloseTable = useCallback(async () => {
     if (currentTable && currentStaff) {
@@ -86,6 +104,7 @@ const TableManagement = () => {
     const orderItems = currentOrder.map((item) => ({
       itemId: item._id,
       quantity: item.quantity,
+      price: item.price,
     }));
 
     console.log("Creating order with:", {
@@ -93,6 +112,10 @@ const TableManagement = () => {
       username: currentStaff.username,
       items: orderItems,
     });
+
+    if (billData?.getCurrentBillForTable) {
+      await handleAddOrderToBill(data.createOrder.order._id);
+    }
 
     try {
       const { data } = await createOrder({
@@ -119,8 +142,7 @@ const TableManagement = () => {
     }
   };
 
-  useEffect(() => {
-  }, [currentStaff]);
+  useEffect(() => {}, [currentStaff]);
 
   const handleUpdateOrder = async () => {
     if (!currentOrderId || !currentTable) return;
@@ -129,20 +151,32 @@ const TableManagement = () => {
     const orderItems = currentOrder.map((item) => ({
       itemId: item._id,
       quantity: item.quantity,
+      price: item.price, // Include the price
     }));
 
+    console.log(orderItems)
+    refetchBill();
+
     try {
-      await updateOrder({
+      const { data } = await updateOrder({
         variables: {
-          updateOrderInput: {
-            orderId: currentOrderId,
+          _id: currentOrderId,
+          updateOrderDto: {
             items: orderItems,
           },
         },
       });
+
+      if (data.updateOrder.success) {
+        // Handle successful update (e.g., show a success message)
+        console.log("Order updated successfully");
+      } else {
+        // Handle update failure
+        console.error("Failed to update order:", data.updateOrder.message);
+      }
     } catch (error) {
       console.error("Error updating order:", error);
-      // TODO: implement toastbox for error handling
+      // Handle error (e.g., show an error message to the user)
     }
   };
 
@@ -160,6 +194,7 @@ const TableManagement = () => {
         },
       });
       setCurrentBillId(data.createBill._id);
+      refetchBill();
     } catch (error) {
       console.error("Error creating bill:", error);
       // TODO: implement toastbox for error handling
@@ -180,12 +215,41 @@ const TableManagement = () => {
       });
       setCurrentBillId(null);
       setCurrentOrderId(null);
+      refetchBill();
     } catch (error) {
       console.error("Error paying bill:", error);
       // TODO: implement toastbox for error handling
     }
   };
 
+  const handleAddOrderToBill = async (orderId: string) => {
+    if (!billData?.getCurrentBillForTable) return;
+
+    try {
+      await addOrderToBill({
+        variables: { billId: billData.getCurrentBillForTable._id, orderId },
+      });
+      refetchBill();
+    } catch (error) {
+      console.error("Error adding order to bill:", error);
+      // TODO: implement toastbox for error handling
+    }
+  };
+
+  const handleRemoveOrderFromBill = async (orderId: string) => {
+    if (!billData?.getCurrentBillForTable) return;
+
+    try {
+      await removeOrderFromBill({
+        variables: { billId: billData.getCurrentBillForTable._id, orderId },
+      });
+      refetchBill();
+    } catch (error) {
+      console.error("Error removing order from bill:", error);
+      // TODO: implement toastbox for error handling
+    }
+  };
+  
   const handleAddItem = useCallback(
     (item: MenuItem) => {
       if (currentTable) {
@@ -220,8 +284,18 @@ const TableManagement = () => {
           currentTable={currentTable}
           onSwitchTable={handleSwitchTable}
         />
-        {currentTable && (
+              {currentTable && (
           <>
+            {billLoading ? (
+              <p>Loading bill...</p>
+            ) : billData?.getCurrentBillForTable ? (
+              <BillSummary
+                bill={billData.getCurrentBillForTable}
+                onRemoveOrder={handleRemoveOrderFromBill}
+              />
+            ) : (
+              <p>No active bill for this table.</p>
+            )}
             <OrderList
               order={currentOrder}
               onRemoveItem={handleRemoveItem}

@@ -84,18 +84,23 @@ export const CREATE_ORDER = gql`
 `;
 
 export const UPDATE_ORDER = gql`
-  mutation UpdateOrder($_id: ID!, $updateOrderInput: UpdateOrderInput!) {
-    updateOrder(_id: $_id, updateOrderInput: $updateOrderInput) {
-      _id
-      tableId
-      username
-      items {
-        itemId
-        quantity
+  mutation UpdateOrder($_id: ID!, $updateOrderDto: UpdateOrderDto!) {
+    updateOrder(_id: $_id, updateOrderDto: $updateOrderDto) {
+      success
+      message
+      order {
+        _id
+        tableId
+        username
+        items {
+          itemId
+          quantity
+          price
+        }
+        totalAmount
+        status
+        updatedAt
       }
-      totalAmount
-      status
-      updatedAt
     }
   }
 `;

@@ -16,6 +16,36 @@ export class BillsService {
     @InjectModel(MenuItem.name) private menuItemModel: Model<MenuItem>,
   ) {}
 
+  // async getCurrentBillForTable(tableId: string): Promise<Bill | null> {
+  //   const bill = await this.billModel
+  //     .findOne({
+  //       tableId: tableId,
+  //       status: 'Open',
+  //     })
+  //     .populate('orders')
+  //     .exec();
+
+  //   return bill;
+  // }
+
+  async getCurrentBillForTable(tableId: string): Promise<Bill | null> {
+    const bill = await this.billModel
+      .findOne({
+        tableId: tableId,
+        status: 'Open',
+      })
+      .populate({
+        path: 'orders',
+        populate: {
+          path: 'items.itemId',
+          model: 'Item',
+        },
+      })
+      .exec();
+
+    return bill;
+  }
+
   async createBill(
     createBillDto: CreateBillDto,
   ): Promise<ServiceResponse<Bill>> {
@@ -45,7 +75,7 @@ export class BillsService {
   }
 
   async updateBill(
-    id: string,
+    _id: string,
     updateBillDto: UpdateBillDto,
   ): Promise<ServiceResponse<Bill>> {
     const { orderId, totalAmount, status, paidAt, paymentMethod } =
@@ -68,13 +98,13 @@ export class BillsService {
     if (paymentMethod) updateData.paymentMethod = paymentMethod;
 
     const updatedBill = await this.billModel
-      .findByIdAndUpdate(id, updateData, { new: true })
+      .findByIdAndUpdate(_id, updateData, { new: true })
       .exec();
 
     if (!updatedBill) {
       return {
         success: false,
-        message: `Bill with ID ${id} not found`,
+        message: `Bill with ID ${_id} not found`,
         data: null,
       };
     }
@@ -122,12 +152,12 @@ export class BillsService {
     };
   }
 
-  async findBillById(id: string): Promise<ServiceResponse<Bill>> {
-    const bill = await this.billModel.findById(id).exec();
+  async findBillById(_id: string): Promise<ServiceResponse<Bill>> {
+    const bill = await this.billModel.findById(_id).exec();
     if (!bill) {
       return {
         success: false,
-        message: `Bill with ID ${id} not found`,
+        message: `Bill with ID ${_id} not found`,
         data: null,
       };
     }
@@ -138,12 +168,12 @@ export class BillsService {
     };
   }
 
-  async deleteBill(id: string): Promise<ServiceResponse<null>> {
-    const result = await this.billModel.deleteOne({ _id: id }).exec();
+  async deleteBill(_id: string): Promise<ServiceResponse<null>> {
+    const result = await this.billModel.deleteOne({ _id: _id }).exec();
     if (result.deletedCount === 0) {
       return {
         success: false,
-        message: `Bill with ID ${id} not found`,
+        message: `Bill with ID ${_id} not found`,
         data: null,
       };
     }

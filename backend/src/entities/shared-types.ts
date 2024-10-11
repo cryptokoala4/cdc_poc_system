@@ -1,14 +1,17 @@
 import { ObjectType, InputType, Field, ID, Int, Float } from '@nestjs/graphql';
-import { Schema as MongooseSchema } from 'mongoose';
+import { Types } from 'mongoose';
 import { IsNumber, IsString, Min } from 'class-validator';
 
 @ObjectType()
 export class OrderItem {
   @Field(() => ID)
-  itemId: MongooseSchema.Types.ObjectId;
+  itemId: Types.ObjectId;
 
   @Field(() => Float)
   quantity: number;
+
+  @Field(() => Float, { nullable: true }) // Temp allow null values
+  price: number;
 }
 
 @InputType()
@@ -17,8 +20,13 @@ export class OrderItemInput {
   @IsString()
   itemId: string;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @IsNumber()
   @Min(1)
   quantity: number;
+
+  @Field(() => Float)
+  @IsNumber()
+  @Min(1)
+  price: number;
 }

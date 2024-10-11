@@ -53,15 +53,15 @@ export class TablesService {
     }
   }
 
-  async findOne(id: string): Promise<ServiceResponse<Table | null>> {
+  async findOne(_id: string): Promise<ServiceResponse<Table | null>> {
     try {
       const table = await this.tableModel
-        .findById(new Types.ObjectId(id))
+        .findById(new Types.ObjectId(_id))
         .exec();
       if (!table) {
         return {
           success: false,
-          message: `Table with ID ${id} not found`,
+          message: `Table with ID ${_id} not found`,
           data: null,
         };
       }

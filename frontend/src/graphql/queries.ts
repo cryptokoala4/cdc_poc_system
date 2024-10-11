@@ -51,33 +51,19 @@ export const GET_TABLE = gql`
   }
 `;
 
-export const GET_BILLS = gql`
-  query GetBills {
-    bills {
+export const GET_CURRENT_BILL = gql`
+  query GetCurrentBill($tableId: ID!) {
+    getCurrentBillForTable(tableId: $tableId) {
       _id
       tableId
-      items {
-        menuItemId
-        quantity
-        price
-      }
-      totalAmount
-      status
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-export const GET_BILL = gql`
-  query GetBill($id: ID!) {
-    bill(id: $id) {
-      _id
-      tableId
-      items {
-        menuItemId
-        quantity
-        price
+      orders {
+        _id
+        items {
+          itemId
+          quantity
+          price
+        }
+        totalAmount
       }
       totalAmount
       status

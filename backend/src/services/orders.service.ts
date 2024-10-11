@@ -79,8 +79,8 @@ export class OrdersService {
       const savedOrder = await newOrder.save();
 
       this.logger.debug(`Saved order: ${JSON.stringify(savedOrder)}`);
-
-      bill.orderIds.push(savedOrder._id);
+      // TODO: Fix
+      // bill.orders.push(savedOrder);
       bill.totalAmount += savedOrder.totalAmount;
       await bill.save();
 
@@ -118,15 +118,15 @@ export class OrdersService {
     }
   }
 
-  async findOrderById(id: string): Promise<ServiceResponse<Order>> {
+  async findOrderById(_id: string): Promise<ServiceResponse<Order>> {
     try {
       const order = await this.orderModel
-        .findById(new Types.ObjectId(id))
+        .findById(new Types.ObjectId(_id))
         .exec();
       if (!order) {
         return {
           success: false,
-          message: `Order with ID ${id} not found`,
+          message: `Order with ID ${_id} not found`,
           data: null,
         };
       }
@@ -138,48 +138,72 @@ export class OrdersService {
     } catch {
       return {
         success: false,
-        message: `Failed to find order with ID ${id}`,
+        message: `Failed to find order with ID ${_id}`,
         data: null,
       };
     }
   }
 
   async updateOrder(
-    id: string,
+    _id: string,
     updateOrderDto: UpdateOrderDto,
   ): Promise<ServiceResponse<Order>> {
     try {
-      const updatedOrder = await this.orderModel
-        .findByIdAndUpdate(new Types.ObjectId(id), updateOrderDto, {
-          new: true,
-        })
-        .exec();
-      if (!updatedOrder) {
+      const order = await this.orderModel.findById(new Types.ObjectId(_id));
+      if (!order) {
         return {
           success: false,
-          message: `Order with ID ${id} not found`,
+          message: `Order with ID ${_id} not found`,
           data: null,
         };
       }
+
+      // Calculate the new total amount
+      const newTotalAmount = updateOrderDto.items.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0,
+      );
+
+      // Update the order
+      const updatedOrder = await this.orderModel
+        .findByIdAndUpdate(
+          new Types.ObjectId(_id),
+          {
+            ...updateOrderDto,
+            totalAmount: newTotalAmount,
+          },
+          { new: true },
+        )
+        .exec();
+
+      // Update the associated bill
+      const bill = await this.billModel.findOne({ orderIds: order._id });
+      if (bill) {
+        bill.totalAmount =
+          bill.totalAmount - order.totalAmount + newTotalAmount;
+        await bill.save();
+      }
+
       return {
         success: true,
         message: 'Order updated successfully',
         data: updatedOrder,
       };
-    } catch {
+    } catch (error) {
+      this.logger.error(`Failed to update order with ID ${_id}:`, error);
       return {
         success: false,
-        message: `Failed to update order with ID ${id}`,
+        message: `Failed to update order with ID ${_id}: ${error.message}`,
         data: null,
       };
     }
   }
 
-  async closeOrder(id: string): Promise<ServiceResponse<Order>> {
+  async closeOrder(_id: string): Promise<ServiceResponse<Order>> {
     try {
       const closedOrder = await this.orderModel
         .findByIdAndUpdate(
-          new Types.ObjectId(id),
+          new Types.ObjectId(_id),
           { status: 'Closed' },
           { new: true },
         )
@@ -187,7 +211,7 @@ export class OrdersService {
       if (!closedOrder) {
         return {
           success: false,
-          message: `Order with ID ${id} not found`,
+          message: `Order with ID ${_id} not found`,
           data: null,
         };
       }
@@ -199,7 +223,7 @@ export class OrdersService {
     } catch {
       return {
         success: false,
-        message: `Failed to close order with ID ${id}`,
+        message: `Failed to close order with ID ${_id}`,
         data: null,
       };
     }

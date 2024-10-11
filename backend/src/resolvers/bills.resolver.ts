@@ -46,6 +46,13 @@ export class BillsResolver {
     };
   }
 
+  @Query(() => Bill, { nullable: true })
+  async getCurrentBillForTable(
+    @Args('tableId', { type: () => ID }) tableId: string,
+  ) {
+    return this.billsService.getCurrentBillForTable(tableId);
+  }
+
   @Mutation(() => BillOperationResult)
   async createBill(
     @Args('createBillInput') createBillDto: CreateBillDto,
