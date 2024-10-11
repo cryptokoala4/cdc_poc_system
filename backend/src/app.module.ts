@@ -7,28 +7,24 @@ import { join } from 'path';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
-// Entity imports
 import { BillSchema } from './entities/bill.entity';
 import { TableSchema } from './entities/table.entity';
 import { MenuItemSchema } from './entities/menu-item.entity';
 import { StaffSchema } from './entities/staff.entity';
 import { OrderSchema } from './entities/order.entity';
 
-// Service imports
 import { MenuItemsService } from './services/menu-items.service';
 import { BillsService } from './services/bills.service';
 import { TablesService } from './services/tables.service';
 import { StaffService } from './services/staff.service';
 import { OrdersService } from './services/orders.service';
 
-// Resolver imports
 import { MenuItemsResolver } from './resolvers/menu-items.resolver';
 import { BillsResolver } from './resolvers/bills.resolver';
 import { TablesResolver } from './resolvers/tables.resolver';
 import { StaffResolver } from './resolvers/staff.resolver';
 import { OrdersResolver } from './resolvers/orders.resolver';
 
-// Seed imports
 import { seedMenuItems } from './seeds/menu-items.seed';
 import { seedStaff } from './seeds/staff.seed';
 import { seedTables } from './seeds/tables.seed';

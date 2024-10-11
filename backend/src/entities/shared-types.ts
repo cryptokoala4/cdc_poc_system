@@ -10,7 +10,7 @@ export class OrderItem {
   @Field(() => Float)
   quantity: number;
 
-  @Field(() => Float, { nullable: true }) // Temp allow null values
+  @Field(() => Float, { nullable: true })
   price: number;
 }
 

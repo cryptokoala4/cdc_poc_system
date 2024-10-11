@@ -24,12 +24,6 @@ export class MenuItem {
   @Field()
   @Prop({ required: true, trim: true })
   category: string;
-
-  @Field(() => Date)
-  createdAt: Date;
-
-  @Field(() => Date)
-  updatedAt: Date;
 }
 
 export type MenuItemDocument = MenuItem & Document;

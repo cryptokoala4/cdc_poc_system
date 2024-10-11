@@ -36,8 +36,6 @@ export interface Order {
   items: OrderItem[];
   totalAmount: number;
   status: 'pending' | 'completed' | 'cancelled';
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface Bill {

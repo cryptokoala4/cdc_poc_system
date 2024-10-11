@@ -11,9 +11,6 @@ export class UpdateBillDto {
   @Field({ nullable: true })
   status?: string;
 
-  // @Field(() => Date, { nullable: true })
-  // paidAt?: Date;
-
   @Field({ nullable: true })
   paymentMethod?: string;
 }

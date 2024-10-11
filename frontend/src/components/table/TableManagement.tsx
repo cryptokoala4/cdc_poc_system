@@ -12,7 +12,6 @@ import {
   UPDATE_ORDER,
   CREATE_BILL,
   UPDATE_BILL,
-  // ADD_ORDER_TO_BILL,
   REMOVE_ORDER_FROM_BILL,
   UPDATE_TABLE,
   SETTLE_BILL,
@@ -41,7 +40,6 @@ const TableManagement = () => {
   const [updateOrder] = useMutation(UPDATE_ORDER);
   const [createBill] = useMutation(CREATE_BILL);
   const [updateBill] = useMutation(UPDATE_BILL);
-  // const [addOrderToBill] = useMutation(ADD_ORDER_TO_BILL);
   const [removeOrderFromBill] = useMutation(REMOVE_ORDER_FROM_BILL);
   const [updateTable] = useMutation(UPDATE_TABLE);
   const [settleBill] = useMutation(SETTLE_BILL);
@@ -104,8 +102,6 @@ const TableManagement = () => {
           await setCurrentTable(tableId);
           if (tableId) {
             await lockTable(tableId, currentStaff.username);
-            // TODO: Fetch current order and bill for this table
-            // and update currentOrderId and currentBillId accordingly
           }
         } catch (error) {
           console.error("Error switching table:", error);
@@ -131,15 +127,18 @@ const TableManagement = () => {
       price: item.price,
     }));
 
+    // Check if there are items in the order
+    if (orderItems.length === 0) {
+      console.error("Cannot create an empty order");
+      // TODO: implement toastbox for error handling
+      return;
+    }
+
     console.log("Creating order with:", {
       tableId: currentTable,
       username: currentStaff.username,
       items: orderItems,
     });
-
-    if (billData?.getCurrentBillForTable) {
-      await handleAddOrderToBill(data.createOrder.order._id);
-    }
 
     try {
       const { data } = await createOrder({
@@ -154,14 +153,18 @@ const TableManagement = () => {
       });
       console.log("Order created successfully:", data);
       setCurrentOrderId(data.createOrder.order._id);
+
+      // Create a bill if it doesn't exist
+      if (!currentBillId) {
+        await handleCreateBill();
+      } else {
+        // If a bill exists, add the new order to it
+        await handleAddOrderToBill(data.createOrder.order._id);
+      }
+      await refetchBill();
+      await fetchTables();
     } catch (error) {
       console.error("Error creating order:", error);
-      if (error.graphQLErrors) {
-        console.error("GraphQL errors:", error.graphQLErrors);
-      }
-      if (error.networkError) {
-        console.error("Network error:", error.networkError);
-      }
       // TODO: implement toastbox for error handling
     }
   };
@@ -204,37 +207,54 @@ const TableManagement = () => {
 
   const handleCreateBill = async () => {
     if (!currentTable || !currentStaff) return;
-
+  
+    const currentOrder = orders[currentTable] || [];
+    const orderItems = currentOrder.map((item) => ({
+      itemId: item._id,
+      quantity: item.quantity,
+      price: item.price,
+    }));
+  
+    if (orderItems.length === 0) {
+      console.error("Cannot create a bill without order items");
+      // TODO: implement toastbox for error handling
+      return;
+    }
+  
     try {
       const { data } = await createBill({
         variables: {
           createBillInput: {
             tableId: currentTable,
             username: currentStaff.username,
+            orderItems: orderItems,
           },
         },
       });
-
-      if (data.createBill) {
-        setCurrentBillId(data.createBill._id);
-
+  
+      if (data.createBill.success) {
+        setCurrentBillId(data.createBill.bill._id);
+  
         // Update the table with the new bill ID
         await updateTable({
           variables: {
             _id: currentTable,
             isOccupied: true,
-            currentBillId: data.createBill._id,
+            currentBillId: data.createBill.bill._id,
           },
         });
-
-        refetchBill();
+  
+        await refetchBill();
         await fetchTables();
+      } else {
+        console.error("Failed to create bill:", data.createBill.message);
       }
     } catch (error) {
       console.error("Error creating bill:", error);
       // TODO: implement toastbox for error handling
     }
   };
+
   const handlePayBill = async () => {
     if (!currentBillId || !currentTable || !currentStaff) return;
     try {
@@ -264,13 +284,18 @@ const TableManagement = () => {
   };
 
   const handleAddOrderToBill = async (orderId: string) => {
-    if (!billData?.getCurrentBillForTable) return;
+    if (!currentBillId) return;
 
     try {
-      await addOrderToBill({
-        variables: { billId: billData.getCurrentBillForTable._id, orderId },
+      await updateBill({
+        variables: {
+          id: currentBillId,
+          updateBillInput: {
+            orderId: orderId,
+          },
+        },
       });
-      refetchBill();
+      await refetchBill();
     } catch (error) {
       console.error("Error adding order to bill:", error);
       // TODO: implement toastbox for error handling

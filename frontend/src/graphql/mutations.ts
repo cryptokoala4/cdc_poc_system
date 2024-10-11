@@ -74,7 +74,6 @@ export const CREATE_ORDER = gql`
         }
         totalAmount
         status
-        createdAt
       }
     }
   }
@@ -96,22 +95,23 @@ export const UPDATE_ORDER = gql`
         }
         totalAmount
         status
-        updatedAt
       }
     }
   }
 `;
 
 export const CREATE_BILL = gql`
-  mutation CreateBill($tableId: ID!, $orderId: ID!, $username: String!) {
-    createBill(tableId: $tableId, orderId: $orderId, username: $username) {
-      _id
-      tableId
-      orderId
-      username
-      totalAmount
-      status
-      createdAt
+  mutation CreateBill($createBillInput: CreateBillDto!) {
+    createBill(createBillInput: $createBillInput) {
+      success
+      message
+      bill {
+        _id
+        tableId
+        username
+        totalAmount
+        status
+      }
     }
   }
 `;

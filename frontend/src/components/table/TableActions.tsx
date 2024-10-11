@@ -66,7 +66,7 @@ const TableActions = ({
         onClick={onCloseTable}
         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
       >
-        Close Table
+        Unlock Table
       </button>
     </div>
   );

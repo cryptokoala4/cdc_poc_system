@@ -39,12 +39,6 @@ export class Order {
     enum: ['Open', 'Closed', 'Cancelled'],
   })
   status: string;
-
-  @Field(() => Date)
-  createdAt: Date;
-
-  @Field(() => Date)
-  updatedAt: Date;
 }
 
 export type OrderDocument = Order & Document;
