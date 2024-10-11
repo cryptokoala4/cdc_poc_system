@@ -3,9 +3,10 @@ export type TableStatus = 'available' | 'locked';
 export interface Table {
   _id: string;
   number: number;
-  capacity: number;
+  seats: number;
   isOccupied: boolean;
   currentBillId: string | null;
+  lockedBy: string;
 }
 
 export interface MenuItem {
@@ -24,7 +25,8 @@ export interface Staff {
 }
 
 export interface OrderItem {
-  _id: number;
+  _id: string;
+  itemId?: number;
   name: string;
   price: number;
   quantity: number;
@@ -40,8 +42,9 @@ export interface Order {
 
 export interface Bill {
   _id: number;
-  // TODO: Fix bill types
-  // name: string;
-  // price: number;
-  // quantity: number;
+  tableId: string;
+  username: string;
+  orders: Order[];
+  totalAmount: number;
+  status: string;
 }

@@ -1,7 +1,7 @@
 import { Bill } from '../types';
 
 interface BillSummaryProps {
-  bill: any;
+  bill: Bill;
   onRemoveOrder: (orderId: string) => void;
 }
 

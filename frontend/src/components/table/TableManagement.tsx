@@ -23,7 +23,7 @@ import MenuItems from "./MenuItems";
 import TableActions from "./TableActions";
 import LockedTables from "./LockedTables";
 import { calculateTotal } from "../../utils/orderUtils";
-import { MenuItem, OrderItem } from "../../types";
+import { MenuItem } from "../../types";
 import BillSummary from "../BillSummary";
 
 const TableManagement = () => {
@@ -96,7 +96,7 @@ const TableManagement = () => {
   }, [currentTable, currentStaff, unlockTable, fetchTables, setCurrentTable]);
 
   const handleSwitchTable = useCallback(
-    async (tableId: number) => {
+    async (tableId: string) => {
       if (currentTable !== tableId && currentStaff) {
         try {
           await setCurrentTable(tableId);
@@ -338,7 +338,7 @@ const TableManagement = () => {
   );
 
   const handleRemoveItem = useCallback(
-    (itemId: number) => {
+    (itemId: string) => {
       if (currentTable) {
         removeOrderItem(currentTable, itemId);
       }

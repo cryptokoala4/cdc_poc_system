@@ -7,10 +7,10 @@ async function bootstrap() {
   });
   // Enable CORS
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
-  await app.listen(3001);
+  await app.listen(3000, '0.0.0.0');
 }
 bootstrap();

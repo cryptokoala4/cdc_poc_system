@@ -2,7 +2,7 @@ import { ApolloClient, InMemoryCache, createHttpLink, from } from "@apollo/clien
 import { onError } from "@apollo/client/link/error";
 
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:3001/graphql",
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3000/graphql',
 });
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
