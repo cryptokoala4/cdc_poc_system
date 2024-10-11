@@ -5,14 +5,20 @@ import { GET_TABLES } from "../graphql/queries";
 import { LOCK_TABLE, UNLOCK_TABLE } from "../graphql/mutations";
 import { useStaffStore } from "./staffStore";
 
+interface TableOperationResult {
+  success: boolean;
+  message: string;
+  table: Table | null;
+}
+
 interface TableStore {
   tables: Table[];
   isLoading: boolean;
   error: string | null;
   currentTable: string | null;
   fetchTables: () => Promise<void>;
-  setCurrentTable: (tableId: string | null) => Promise<void>;
-  unlockTable: (tableId: string) => Promise<void>;
+  setCurrentTable: (tableId: string | null) => Promise<TableOperationResult>;
+  unlockTable: (tableId: string) => Promise<TableOperationResult>;
   clearError: () => void;
 }
 
@@ -56,11 +62,8 @@ export const useTableStore = create<TableStore>((set, get) => ({
             ),
             currentTable: tableId,
           }));
-        } else {
-          throw new Error(
-            data?.lockTable?.message || "Server couldn't lock the table"
-          );
         }
+        return data.lockTable;
       } catch (error) {
         console.error("Error locking table:", error);
         set({
@@ -69,9 +72,20 @@ export const useTableStore = create<TableStore>((set, get) => ({
               ? error.message
               : "Failed to lock table. Please try again.",
         });
+        return {
+          success: false,
+          message:
+            error instanceof Error ? error.message : "Failed to lock table",
+          table: null,
+        };
       }
     } else {
       set({ currentTable: null });
+      return {
+        success: true,
+        message: "Table selection cleared",
+        table: null,
+      };
     }
   },
 
@@ -92,11 +106,8 @@ export const useTableStore = create<TableStore>((set, get) => ({
         }));
 
         await get().fetchTables();
-      } else {
-        throw new Error(
-          data?.unlockTable?.message || "Server couldn't unlock the table"
-        );
       }
+      return data.unlockTable;
     } catch (error) {
       console.error("Error unlocking table:", error);
       set({
@@ -105,6 +116,12 @@ export const useTableStore = create<TableStore>((set, get) => ({
             ? error.message
             : "Failed to unlock table. Please try again.",
       });
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to unlock table",
+        table: null,
+      };
     }
   },
 

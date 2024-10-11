@@ -99,7 +99,7 @@ export class TablesService {
         if (table.lockedBy === username) {
           return {
             success: true,
-            message: 'Table already locked by you',
+            message: 'As locker, you can modify this table',
             data: table,
           };
         } else {

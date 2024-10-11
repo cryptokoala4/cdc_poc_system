@@ -6,7 +6,6 @@ import { useTableStore } from "../../store/tableStore";
 import useOrderStore from "../../store/orderStore";
 import { useMenuStore } from "../../store/menuStore";
 import { useStaffStore } from "../../store/staffStore";
-import { useTableLock } from "../../hooks/useTableLock";
 import { useMutation, useQuery } from "@apollo/client";
 import {
   CREATE_ORDER,
@@ -18,6 +17,7 @@ import {
   SETTLE_BILL,
 } from "../../graphql/mutations";
 import { GET_CURRENT_BILL } from "../../graphql/queries";
+import { useToast } from "../../hooks/useToast";
 
 import OrderList from "./OrderList";
 import MenuItems from "./MenuItems";
@@ -28,12 +28,12 @@ import { MenuItem } from "../../types";
 import BillSummary from "../BillSummary";
 
 const TableManagement = () => {
-  const { currentTable, setCurrentTable, tables, fetchTables } =
+  const { showToast } = useToast();
+  const { currentTable, setCurrentTable, tables, fetchTables, unlockTable } =
     useTableStore();
   const { orders, addOrderItem, removeOrderItem } = useOrderStore();
   const { menuItems, fetchMenuItems } = useMenuStore();
   const { currentStaff } = useStaffStore();
-  const { lockTable, unlockTable } = useTableLock();
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const [currentBillId, setCurrentBillId] = useState<string | null>(null);
 
@@ -84,38 +84,53 @@ const TableManagement = () => {
   const handleCloseTable = useCallback(async () => {
     if (currentTable && currentStaff) {
       try {
-        await unlockTable(currentTable, currentStaff.username);
-        await fetchTables();
-        setCurrentTable(null);
-        setCurrentOrderId(null);
-        setCurrentBillId(null);
-      } catch (error) {
-        console.error("Error closing table:", error);
+        const result = await unlockTable(currentTable);
+        if (result.success) {
+          showToast(result.message, "success");
+          await fetchTables();
+          setCurrentTable(null);
+          setCurrentOrderId(null);
+          setCurrentBillId(null);
+        } else {
+          showToast(result.message, "error");
+        }
+      } catch (error: unknown) {
+        showToast((error as Error)?.message ?? "Error closing table");
       }
     }
-  }, [currentTable, currentStaff, unlockTable, fetchTables, setCurrentTable]);
+  }, [
+    currentTable,
+    currentStaff,
+    unlockTable,
+    fetchTables,
+    setCurrentTable,
+    showToast,
+  ]);
 
   const handleSwitchTable = useCallback(
     async (tableId: string) => {
       if (currentTable !== tableId && currentStaff) {
         try {
-          await setCurrentTable(tableId);
-          if (tableId) {
-            await lockTable(tableId, currentStaff.username);
+          const result = await setCurrentTable(tableId);
+          if (result.success) {
+            showToast(result.message, "success");
+          } else {
+            showToast(result.message, "error");
           }
         } catch (error) {
-          console.error("Error switching table:", error);
+          showToast(
+            error instanceof Error ? error.message : "Error switching table",
+            "error"
+          );
         }
       }
     },
-    [currentTable, setCurrentTable, lockTable, currentStaff]
+    [currentTable, setCurrentTable, currentStaff, showToast]
   );
 
   const handleCreateOrder = async () => {
     if (!currentTable || !currentStaff) {
-      console.error(
-        "Cannot create order: currentTable or currentStaff is null"
-      );
+      showToast("Cannot create order: no table or staff selected", "error");
       return;
     }
 
@@ -127,7 +142,7 @@ const TableManagement = () => {
     }));
 
     if (orderItems.length === 0) {
-      console.error("Cannot create an empty order");
+      showToast("Cannot create an empty order", "error");
       return;
     }
 
@@ -142,22 +157,34 @@ const TableManagement = () => {
           username: currentStaff.username,
         },
       });
-      setCurrentOrderId(data.createOrder.order._id);
 
-      if (!currentBillId) {
-        await handleCreateBill();
+      if (data.createOrder.success) {
+        showToast(data.createOrder.message, "success");
+        setCurrentOrderId(data.createOrder.order._id);
+
+        if (!currentBillId) {
+          await handleCreateBill();
+        } else {
+          await handleAddOrderToBill(data.createOrder.order._id);
+        }
+        await refetchBill();
+        await fetchTables();
       } else {
-        await handleAddOrderToBill(data.createOrder.order._id);
+        showToast(data.createOrder.message, "error");
       }
-      await refetchBill();
-      await fetchTables();
     } catch (error) {
-      console.error("Error creating order:", error);
+      showToast(
+        error instanceof Error ? error.message : "Error creating order",
+        "error"
+      );
     }
   };
 
   const handleUpdateOrder = async () => {
-    if (!currentOrderId || !currentTable) return;
+    if (!currentOrderId || !currentTable) {
+      showToast("No current order to update", "error");
+      return;
+    }
 
     const currentOrder = orders[currentTable] || [];
     const orderItems = currentOrder.map((item) => ({
@@ -177,17 +204,23 @@ const TableManagement = () => {
       });
 
       if (data.updateOrder.success) {
-        console.log("Order updated successfully");
+        showToast(data.updateOrder.message, "success");
       } else {
-        console.error("Failed to update order:", data.updateOrder.message);
+        showToast(data.updateOrder.message, "error");
       }
     } catch (error) {
-      console.error("Error updating order:", error);
+      showToast(
+        error instanceof Error ? error.message : "Error updating order",
+        "error"
+      );
     }
   };
 
   const handleCreateBill = async () => {
-    if (!currentTable || !currentStaff) return;
+    if (!currentTable || !currentStaff) {
+      showToast("Cannot create bill: no table or staff selected", "error");
+      return;
+    }
 
     const currentOrder = orders[currentTable] || [];
     const orderItems = currentOrder.map((item) => ({
@@ -197,7 +230,7 @@ const TableManagement = () => {
     }));
 
     if (orderItems.length === 0) {
-      console.error("Cannot create a bill without order items");
+      showToast("Cannot create a bill without order items", "error");
       return;
     }
 
@@ -213,6 +246,7 @@ const TableManagement = () => {
       });
 
       if (data.createBill.success) {
+        showToast(data.createBill.message, "success");
         setCurrentBillId(data.createBill.bill._id);
 
         await updateTable({
@@ -226,15 +260,21 @@ const TableManagement = () => {
         await refetchBill();
         await fetchTables();
       } else {
-        console.error("Failed to create bill:", data.createBill.message);
+        showToast(data.createBill.message, "error");
       }
     } catch (error) {
-      console.error("Error creating bill:", error);
+      showToast(
+        error instanceof Error ? error.message : "Error creating bill",
+        "error"
+      );
     }
   };
 
   const handlePayBill = async () => {
-    if (!currentBillId || !currentTable || !currentStaff) return;
+    if (!currentBillId || !currentTable || !currentStaff) {
+      showToast("Cannot pay bill: missing information", "error");
+      return;
+    }
     try {
       const { data: billData } = await settleBill({
         variables: {
@@ -243,28 +283,34 @@ const TableManagement = () => {
       });
 
       if (billData.settleBill.success) {
-        console.log("Bill settled successfully");
+        showToast(billData.settleBill.message, "success");
 
         setCurrentBillId(null);
         setCurrentOrderId(null);
 
-        await unlockTable(currentTable, currentStaff.username);
+        await unlockTable(currentTable);
         await fetchTables();
         setCurrentTable(null);
         await refetchBill();
       } else {
-        console.error("Failed to settle bill:", billData.settleBill.message);
+        showToast(billData.settleBill.message, "error");
       }
     } catch (error) {
-      console.error("Error settling bill:", error);
+      showToast(
+        error instanceof Error ? error.message : "Error settling bill",
+        "error"
+      );
     }
   };
 
   const handleAddOrderToBill = async (orderId: string) => {
-    if (!currentBillId) return;
+    if (!currentBillId) {
+      showToast("No active bill to add order to", "error");
+      return;
+    }
 
     try {
-      await updateBill({
+      const { data } = await updateBill({
         variables: {
           id: currentBillId,
           updateBillInput: {
@@ -272,14 +318,26 @@ const TableManagement = () => {
           },
         },
       });
-      await refetchBill();
+
+      if (data.updateBill.success) {
+        showToast(data.updateBill.message, "success");
+        await refetchBill();
+      } else {
+        showToast(data.updateBill.message, "error");
+      }
     } catch (error) {
-      console.error("Error adding order to bill:", error);
+      showToast(
+        error instanceof Error ? error.message : "Error adding order to bill",
+        "error"
+      );
     }
   };
 
   const handleRemoveOrderFromBill = async (orderId: string) => {
-    if (!billData?.getCurrentBillForTable) return;
+    if (!billData?.getCurrentBillForTable) {
+      showToast("No active bill to remove order from", "error");
+      return;
+    }
 
     try {
       const { data } = await removeOrderFromBill({
@@ -290,16 +348,18 @@ const TableManagement = () => {
       });
 
       if (data.removeOrderFromBill.success) {
-        console.log("Order removed from bill successfully");
+        showToast(data.removeOrderFromBill.message, "success");
         refetchBill();
       } else {
-        console.error(
-          "Failed to remove order from bill:",
-          data.removeOrderFromBill.message
-        );
+        showToast(data.removeOrderFromBill.message, "error");
       }
     } catch (error) {
-      console.error("Error removing order from bill:", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Error removing order from bill",
+        "error"
+      );
     }
   };
 
@@ -334,12 +394,12 @@ const TableManagement = () => {
       className="flex h-[85vh] bg-gray-900 rounded-lg overflow-hidden shadow-2xl"
     >
       <div className="w-2/3 p-6 overflow-y-auto">
-        <h2 className=" font-bold mb-4 text-white">Menu Items</h2>
+        <h2 className="font-bold mb-4 text-white">Menu Items</h2>
         <MenuItems menuItems={menuItems} onAddItem={handleAddItem} />
       </div>
       <div className="w-1/3 bg-gray-800 flex flex-col">
         <div className="p-6 flex-grow overflow-y-auto">
-          <h2 className=" font-bold mb-4 text-white">Table Management</h2>
+          <h2 className="font-bold mb-4 text-white">Table Management</h2>
           <AnimatePresence>
             {currentTable && (
               <motion.div
@@ -348,7 +408,7 @@ const TableManagement = () => {
                 exit={{ opacity: 0, y: -20 }}
                 className="mb-6"
               >
-                <h3 className=" font-semibold mb-2 text-white">
+                <h3 className="font-semibold mb-2 text-white">
                   Current Table: {currentTable}
                 </h3>
                 {billLoading ? (
@@ -367,7 +427,7 @@ const TableManagement = () => {
             )}
           </AnimatePresence>
           <div className="mb-6">
-            <h3 className=" font-semibold mb-2 text-white">Locked Tables</h3>
+            <h3 className="font-semibold mb-2 text-white">Locked Tables</h3>
             <LockedTables
               lockedTables={lockedTables}
               currentTable={currentTable}
@@ -375,7 +435,7 @@ const TableManagement = () => {
             />
           </div>
           <div className="mb-6">
-            <h3 className=" font-semibold mb-2 text-white">Current Order</h3>
+            <h3 className="font-semibold mb-2 text-white">Current Order</h3>
             <OrderList
               order={currentOrder}
               onRemoveItem={handleRemoveItem}

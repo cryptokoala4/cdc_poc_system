@@ -10,8 +10,10 @@ import {
 } from "@heroicons/react/24/solid";
 import TableManagement from "./table/TableManagement";
 import Header from "./Header";
+import { useToast } from "../hooks/useToast";
 
 const TableGrid = () => {
+  const { showToast } = useToast();
   const { tables, fetchTables, setCurrentTable, currentTable, unlockTable } =
     useTableStore();
   const [zoom, setZoom] = useState(1);
@@ -45,10 +47,24 @@ const TableGrid = () => {
   };
 
   const handleTableClick = async (tableId: string) => {
-    if (currentTable === tableId) {
-      await unlockTable(tableId);
-    } else {
-      await setCurrentTable(tableId);
+    try {
+      if (currentTable === tableId) {
+        const result = await unlockTable(tableId);
+        if (result.success) {
+          showToast(result.message, "success");
+        } else {
+          showToast(result.message, "error");
+        }
+      } else {
+        const result = await setCurrentTable(tableId);
+        if (result.success) {
+          showToast(result.message, "success");
+        } else {
+          showToast(result.message, "error");
+        }
+      }
+    } catch (error: unknown) {
+      showToast((error as Error)?.message ?? "Error managing table", "error");
     }
   };
 

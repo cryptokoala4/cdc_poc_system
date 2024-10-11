@@ -1,8 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ApolloWrapper } from '../components/ApolloWrapper';
-import Header from '../components/Header';
+import { ApolloWrapper } from "../components/ApolloWrapper";
+import Header from "../components/Header";
+import { ToasterProvider } from "../components/ToasterProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,12 +19,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-gray-900 text-white flex flex-col min-h-screen`}>
+      <body
+        className={`${inter.className} bg-gray-900 text-white flex flex-col min-h-screen`}
+      >
         <ApolloWrapper>
           <Header />
-          <main className="flex-grow p-4">
-            {children}
-          </main>
+          <main className="flex-grow p-4">{children}</main>
+          <ToasterProvider />
         </ApolloWrapper>
       </body>
     </html>

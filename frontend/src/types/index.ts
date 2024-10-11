@@ -15,6 +15,7 @@ export interface MenuItem {
   description: string;
   price: number;
   category: string;
+  quantity: number;
 }
 
 export interface Staff {

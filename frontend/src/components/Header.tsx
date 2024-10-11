@@ -8,18 +8,18 @@ import {
 } from "@heroicons/react/24/solid";
 
 interface HeaderProps {
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  zoom: number;
-  handleZoom: (direction: "in" | "out") => void;
+  searchTerm?: string;
+  setSearchTerm?: (term: string) => void;
+  zoom?: number;
+  handleZoom?: (direction: "in" | "out") => void;
 }
 
 export default function Header({
-  searchTerm,
-  setSearchTerm,
-  zoom,
-  handleZoom,
-}: HeaderProps) {
+  searchTerm = "",
+  setSearchTerm = () => {},
+  zoom = 1,
+  handleZoom = () => {},
+}: HeaderProps)  {
   const { currentStaff, logout } = useStaffStore();
 
   const handleLogout = () => {
