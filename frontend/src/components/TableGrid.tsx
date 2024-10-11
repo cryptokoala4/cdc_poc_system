@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTableStore } from "../store/tableStore";
-import { LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/solid";
+import {
+  LockClosedIcon,
+  LockOpenIcon,
+  UserIcon,
+} from "@heroicons/react/24/solid";
 import TableManagement from "./table/TableManagement";
 import Header from "./Header";
 
@@ -55,6 +59,18 @@ const TableGrid = () => {
     });
   };
 
+  useEffect(() => {
+    if (currentTable) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [currentTable]);
+
   return (
     <>
       <Header
@@ -82,9 +98,13 @@ const TableGrid = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="text-xl mb-1">Table</span>
-              <span className="text-3xl mb-1">{table.number}</span>
-              <span className="text-sm mb-2">Seats: {table.seats}</span>
+              <span className="text-sm mb-1">Table</span>
+              <span className="text-2xl mb-1">{table.number}</span>
+              <div className="flex flex-wrap justify-center mb-2">
+                {[...Array(table.seats)].map((_, index) => (
+                  <UserIcon key={index} className="w-4 h-4 text-white mx-0.5" />
+                ))}
+              </div>
               {table.lockedBy ? (
                 <LockClosedIcon className="w-6 h-6" />
               ) : (
@@ -125,7 +145,7 @@ const TableGrid = () => {
                 <h2 className="text-xl font-bold">Table Management</h2>
                 <button
                   onClick={() => setCurrentTable(null)}
-                  className="text-4xl hover:text-gray-300"
+                  className="text-3xl hover:text-gray-300"
                 >
                   &times;
                 </button>

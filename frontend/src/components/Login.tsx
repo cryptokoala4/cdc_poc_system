@@ -95,7 +95,7 @@ const Login = () => {
     <div className="flex items-center justify-center min-h-screen bg-black bg-opacity-50">
       <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-4xl w-full flex">
         <div className="w-1/2 pr-4 border-r border-gray-600">
-          <h3 className="text-xl font-semibold mb-4 text-white">Test Users</h3>
+          <h3 className=" font-semibold mb-4 text-white">Test Users</h3>
           <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto pr-4">
             {testUsers.map((user) => (
               <button
@@ -104,19 +104,19 @@ const Login = () => {
                 className="w-full text-left p-2 bg-gray-700 hover:bg-gray-600 rounded transition duration-300"
               >
                 <p className="text-white font-semibold">{user.name}</p>
-                <p className="text-gray-300 text-sm">
+                <p className="text-gray-300 ">
                   Username: {user.username}
                 </p>
-                <p className="text-gray-300 text-sm">
+                <p className="text-gray-300 ">
                   Password: {user.password}
                 </p>
-                <p className="text-gray-400 text-xs">{user.role}</p>
+                <p className="text-gray-400 ">{user.role}</p>
               </button>
             ))}
           </div>
         </div>
         <div className="w-1/2 pl-4">
-          <h2 className="text-2xl font-bold mb-6 text-white">Login</h2>
+          <h2 className=" font-bold mb-6 text-white">Login</h2>
           <form onSubmit={handleSubmit} className="mb-6">
             <div className="mb-4">
               <label htmlFor="username" className="block mb-2 text-gray-300">

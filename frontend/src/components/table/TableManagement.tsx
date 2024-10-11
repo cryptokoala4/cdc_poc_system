@@ -334,14 +334,12 @@ const TableManagement = () => {
       className="flex h-[85vh] bg-gray-900 rounded-lg overflow-hidden shadow-2xl"
     >
       <div className="w-2/3 p-6 overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4 text-white">Menu Items</h2>
+        <h2 className=" font-bold mb-4 text-white">Menu Items</h2>
         <MenuItems menuItems={menuItems} onAddItem={handleAddItem} />
       </div>
       <div className="w-1/3 bg-gray-800 flex flex-col">
         <div className="p-6 flex-grow overflow-y-auto">
-          <h2 className="text-2xl font-bold mb-4 text-white">
-            Table Management
-          </h2>
+          <h2 className=" font-bold mb-4 text-white">Table Management</h2>
           <AnimatePresence>
             {currentTable && (
               <motion.div
@@ -350,7 +348,7 @@ const TableManagement = () => {
                 exit={{ opacity: 0, y: -20 }}
                 className="mb-6"
               >
-                <h3 className="text-xl font-semibold mb-2 text-white">
+                <h3 className=" font-semibold mb-2 text-white">
                   Current Table: {currentTable}
                 </h3>
                 {billLoading ? (
@@ -369,9 +367,7 @@ const TableManagement = () => {
             )}
           </AnimatePresence>
           <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2 text-white">
-              Locked Tables
-            </h3>
+            <h3 className=" font-semibold mb-2 text-white">Locked Tables</h3>
             <LockedTables
               lockedTables={lockedTables}
               currentTable={currentTable}
@@ -379,9 +375,7 @@ const TableManagement = () => {
             />
           </div>
           <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2 text-white">
-              Current Order
-            </h3>
+            <h3 className=" font-semibold mb-2 text-white">Current Order</h3>
             <OrderList
               order={currentOrder}
               onRemoveItem={handleRemoveItem}

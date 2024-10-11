@@ -8,7 +8,7 @@ interface BillSummaryProps {
 const BillSummary = ({ bill, onRemoveOrder }: BillSummaryProps) => {
   return (
     <div className="mb-4">
-      <h3 className="text-xl font-semibold mb-2">Current Bill</h3>
+      <h3 className=" font-semibold mb-2">Current Bill</h3>
       <p className="mb-2">Total: ${bill.totalAmount.toFixed(2)}</p>
       {bill.orders.map((order) => (
         <div key={order._id} className="mb-2 p-2 bg-gray-700 rounded">

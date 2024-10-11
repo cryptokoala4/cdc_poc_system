@@ -28,7 +28,7 @@ export default function Header({
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-gray-800 text-white p-3 flex flex-wrap justify-between items-center z-50">
-      <h1 className="text-2xl font-bold mr-4">
+      <h1 className=" font-bold mr-4">
         CDC Restaurant Point of Sales System
       </h1>
       <div className="flex items-center space-x-4 flex-grow justify-center">
