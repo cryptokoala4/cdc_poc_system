@@ -125,7 +125,7 @@ const TableGrid = () => {
                 <h2 className="text-xl font-bold">Table Management</h2>
                 <button
                   onClick={() => setCurrentTable(null)}
-                  className="text-2xl hover:text-gray-300"
+                  className="text-4xl hover:text-gray-300"
                 >
                   &times;
                 </button>

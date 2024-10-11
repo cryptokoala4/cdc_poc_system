@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTableStore } from "../../store/tableStore";
 import useOrderStore from "../../store/orderStore";
 import { useMenuStore } from "../../store/menuStore";
@@ -90,7 +91,6 @@ const TableManagement = () => {
         setCurrentBillId(null);
       } catch (error) {
         console.error("Error closing table:", error);
-        // TODO: implement toastbox for error handling
       }
     }
   }, [currentTable, currentStaff, unlockTable, fetchTables, setCurrentTable]);
@@ -105,7 +105,6 @@ const TableManagement = () => {
           }
         } catch (error) {
           console.error("Error switching table:", error);
-          // TODO: implement toastbox for error handling
         }
       }
     },
@@ -127,18 +126,10 @@ const TableManagement = () => {
       price: item.price,
     }));
 
-    // Check if there are items in the order
     if (orderItems.length === 0) {
       console.error("Cannot create an empty order");
-      // TODO: implement toastbox for error handling
       return;
     }
-
-    console.log("Creating order with:", {
-      tableId: currentTable,
-      username: currentStaff.username,
-      items: orderItems,
-    });
 
     try {
       const { data } = await createOrder({
@@ -151,25 +142,19 @@ const TableManagement = () => {
           username: currentStaff.username,
         },
       });
-      console.log("Order created successfully:", data);
       setCurrentOrderId(data.createOrder.order._id);
 
-      // Create a bill if it doesn't exist
       if (!currentBillId) {
         await handleCreateBill();
       } else {
-        // If a bill exists, add the new order to it
         await handleAddOrderToBill(data.createOrder.order._id);
       }
       await refetchBill();
       await fetchTables();
     } catch (error) {
       console.error("Error creating order:", error);
-      // TODO: implement toastbox for error handling
     }
   };
-
-  useEffect(() => {}, [currentStaff]);
 
   const handleUpdateOrder = async () => {
     if (!currentOrderId || !currentTable) return;
@@ -180,9 +165,6 @@ const TableManagement = () => {
       quantity: item.quantity,
       price: item.price,
     }));
-
-    console.log(orderItems);
-    refetchBill();
 
     try {
       const { data } = await updateOrder({
@@ -201,26 +183,24 @@ const TableManagement = () => {
       }
     } catch (error) {
       console.error("Error updating order:", error);
-      // TODO: implement toastbox for error handlin
     }
   };
 
   const handleCreateBill = async () => {
     if (!currentTable || !currentStaff) return;
-  
+
     const currentOrder = orders[currentTable] || [];
     const orderItems = currentOrder.map((item) => ({
       itemId: item._id,
       quantity: item.quantity,
       price: item.price,
     }));
-  
+
     if (orderItems.length === 0) {
       console.error("Cannot create a bill without order items");
-      // TODO: implement toastbox for error handling
       return;
     }
-  
+
     try {
       const { data } = await createBill({
         variables: {
@@ -231,11 +211,10 @@ const TableManagement = () => {
           },
         },
       });
-  
+
       if (data.createBill.success) {
         setCurrentBillId(data.createBill.bill._id);
-  
-        // Update the table with the new bill ID
+
         await updateTable({
           variables: {
             _id: currentTable,
@@ -243,7 +222,7 @@ const TableManagement = () => {
             currentBillId: data.createBill.bill._id,
           },
         });
-  
+
         await refetchBill();
         await fetchTables();
       } else {
@@ -251,7 +230,6 @@ const TableManagement = () => {
       }
     } catch (error) {
       console.error("Error creating bill:", error);
-      // TODO: implement toastbox for error handling
     }
   };
 
@@ -279,7 +257,6 @@ const TableManagement = () => {
       }
     } catch (error) {
       console.error("Error settling bill:", error);
-      // TODO: implement toastbox for error handling
     }
   };
 
@@ -298,7 +275,6 @@ const TableManagement = () => {
       await refetchBill();
     } catch (error) {
       console.error("Error adding order to bill:", error);
-      // TODO: implement toastbox for error handling
     }
   };
 
@@ -324,7 +300,6 @@ const TableManagement = () => {
       }
     } catch (error) {
       console.error("Error removing order from bill:", error);
-      // TODO: implement toastbox for error handling
     }
   };
 
@@ -352,39 +327,74 @@ const TableManagement = () => {
   const lockedTables = tables.filter((table) => table.lockedBy);
 
   return (
-    <div className="flex h-[75vh]">
-      <div className="w-2/3 p-4 bg-gray-800 overflow-y-auto">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex h-[85vh] bg-gray-900 rounded-lg overflow-hidden shadow-2xl"
+    >
+      <div className="w-2/3 p-6 overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-4 text-white">Menu Items</h2>
         <MenuItems menuItems={menuItems} onAddItem={handleAddItem} />
       </div>
-      <div className="w-1/3 p-4 border-l border-gray-600 bg-gray-800 flex flex-col">
-        <div className="flex-grow overflow-y-auto">
-          <LockedTables
-            lockedTables={lockedTables}
-            currentTable={currentTable}
-            onSwitchTable={handleSwitchTable}
-          />
-          {currentTable && (
-            <>
-              {billLoading ? (
-                <p>Loading bill...</p>
-              ) : billData?.getCurrentBillForTable ? (
-                <BillSummary
-                  bill={billData.getCurrentBillForTable}
-                  onRemoveOrder={handleRemoveOrderFromBill}
-                />
-              ) : (
-                <p>No active bill for this table.</p>
-              )}
-              <OrderList
-                order={currentOrder}
-                onRemoveItem={handleRemoveItem}
-                total={total}
-              />
-            </>
-          )}
+      <div className="w-1/3 bg-gray-800 flex flex-col">
+        <div className="p-6 flex-grow overflow-y-auto">
+          <h2 className="text-2xl font-bold mb-4 text-white">
+            Table Management
+          </h2>
+          <AnimatePresence>
+            {currentTable && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="mb-6"
+              >
+                <h3 className="text-xl font-semibold mb-2 text-white">
+                  Current Table: {currentTable}
+                </h3>
+                {billLoading ? (
+                  <p className="text-gray-400">Loading bill...</p>
+                ) : billData?.getCurrentBillForTable ? (
+                  <BillSummary
+                    bill={billData.getCurrentBillForTable}
+                    onRemoveOrder={handleRemoveOrderFromBill}
+                  />
+                ) : (
+                  <p className="text-gray-400">
+                    No active bill for this table.
+                  </p>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold mb-2 text-white">
+              Locked Tables
+            </h3>
+            <LockedTables
+              lockedTables={lockedTables}
+              currentTable={currentTable}
+              onSwitchTable={handleSwitchTable}
+            />
+          </div>
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold mb-2 text-white">
+              Current Order
+            </h3>
+            <OrderList
+              order={currentOrder}
+              onRemoveItem={handleRemoveItem}
+              total={total}
+            />
+          </div>
         </div>
         {currentTable && (
-          <div className="mt-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 bg-gray-700"
+          >
             <TableActions
               currentOrderId={currentOrderId}
               currentBillId={currentBillId}
@@ -394,10 +404,10 @@ const TableManagement = () => {
               onPayBill={handlePayBill}
               onCloseTable={handleCloseTable}
             />
-          </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

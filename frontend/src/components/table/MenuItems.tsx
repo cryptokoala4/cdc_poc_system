@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { MenuItem } from "../../types";
 
 interface MenuItemsProps {
@@ -7,21 +8,21 @@ interface MenuItemsProps {
 
 const MenuItems = ({ menuItems, onAddItem }: MenuItemsProps) => {
   return (
-    <section className="mb-6">
-      <h3 className="text-xl font-semibold mb-2 text-white">Menu Items</h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {menuItems.map((item) => (
-          <button
-            key={item._id}
-            onClick={() => onAddItem(item)}
-            className="bg-gray-700 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-42 h-24 flex flex-col items-center justify-center text-center transition-colors duration-200"
-          >
-            <span className="text-sm mb-2">{item.name}</span>
-            <span className="text-lg">${item.price.toFixed(2)}</span>
-          </button>
-        ))}
-      </div>
-    </section>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      {menuItems.map((item) => (
+        <motion.div
+          key={item._id}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer"
+          onClick={() => onAddItem(item)}
+        >
+          <h3 className="text-lg font-semibold text-white mb-2">{item.name}</h3>
+          <p className="text-gray-400 mb-2">{item.description}</p>
+          <p className="text-green-500 font-bold">${item.price.toFixed(2)}</p>
+        </motion.div>
+      ))}
+    </div>
   );
 };
 

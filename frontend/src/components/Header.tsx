@@ -49,7 +49,7 @@ export default function Header({
           >
             <MinusIcon className="h-5 w-5 text-white" />
           </button>
-          <span className="text-white">{Math.round(zoom * 100)}%</span>
+          <span className="text-white">{Math.round(zoom * 100) || 0}%</span>
           <button
             onClick={() => handleZoom("in")}
             className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
