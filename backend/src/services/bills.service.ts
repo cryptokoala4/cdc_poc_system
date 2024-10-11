@@ -79,14 +79,12 @@ export class BillsService {
     _id: string,
     updateBillDto: UpdateBillDto,
   ): Promise<ServiceResponse<Bill>> {
-    const { orderId, totalAmount, status, paidAt, paymentMethod } =
-      updateBillDto;
+    const { orderId, totalAmount, status, paymentMethod } = updateBillDto;
 
     const updateData: {
       $push?: { orderIds: string };
       totalAmount?: number;
       status?: string;
-      paidAt?: Date;
       paymentMethod?: string;
     } = {};
 
@@ -95,7 +93,6 @@ export class BillsService {
     }
     if (totalAmount !== undefined) updateData.totalAmount = totalAmount;
     if (status) updateData.status = status;
-    if (paidAt) updateData.paidAt = paidAt;
     if (paymentMethod) updateData.paymentMethod = paymentMethod;
 
     const updatedBill = await this.billModel
@@ -190,7 +187,6 @@ export class BillsService {
 
       bill.orderIds.splice(orderIndex, 1);
 
-      // Recalculate total amount
       const orders = await this.orderModel.find({
         _id: { $in: bill.orderIds },
       });

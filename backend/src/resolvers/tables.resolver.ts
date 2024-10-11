@@ -91,4 +91,31 @@ export class TablesResolver {
       throw error;
     }
   }
+
+  @Mutation(() => TableOperationResult)
+  async updateTable(
+    @Args('_id', { type: () => ID }) _id: string,
+    @Args('isOccupied', { type: () => Boolean, nullable: true })
+    isOccupied?: boolean,
+    @Args('currentBillId', { type: () => ID, nullable: true })
+    currentBillId?: string,
+  ): Promise<TableOperationResult> {
+    try {
+      const response = await this.tablesService.updateTable(_id, {
+        isOccupied,
+        currentBillId,
+      });
+      return {
+        success: response.success,
+        message: response.message,
+        table: response.data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to update table',
+        table: null,
+      };
+    }
+  }
 }

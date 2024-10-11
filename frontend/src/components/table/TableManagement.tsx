@@ -14,6 +14,8 @@ import {
   UPDATE_BILL,
   // ADD_ORDER_TO_BILL,
   REMOVE_ORDER_FROM_BILL,
+  UPDATE_TABLE,
+  SETTLE_BILL,
 } from "../../graphql/mutations";
 import { GET_CURRENT_BILL } from "../../graphql/queries";
 
@@ -41,6 +43,8 @@ const TableManagement = () => {
   const [updateBill] = useMutation(UPDATE_BILL);
   // const [addOrderToBill] = useMutation(ADD_ORDER_TO_BILL);
   const [removeOrderFromBill] = useMutation(REMOVE_ORDER_FROM_BILL);
+  const [updateTable] = useMutation(UPDATE_TABLE);
+  const [settleBill] = useMutation(SETTLE_BILL);
 
   const {
     data: billData,
@@ -210,43 +214,51 @@ const TableManagement = () => {
           },
         },
       });
-      setCurrentBillId(data.createBill._id);
-      refetchBill();
-      await unlockTable(currentTable, currentStaff.username);
-      await fetchTables();
-      setCurrentTable(null);
+
+      if (data.createBill) {
+        setCurrentBillId(data.createBill._id);
+
+        // Update the table with the new bill ID
+        await updateTable({
+          variables: {
+            _id: currentTable,
+            isOccupied: true,
+            currentBillId: data.createBill._id,
+          },
+        });
+
+        refetchBill();
+        await fetchTables();
+      }
     } catch (error) {
       console.error("Error creating bill:", error);
       // TODO: implement toastbox for error handling
     }
   };
   const handlePayBill = async () => {
-    if (!currentBillId) return;
-
+    if (!currentBillId || !currentTable || !currentStaff) return;
     try {
-      const { data } = await updateBill({
+      const { data: billData } = await settleBill({
         variables: {
           id: currentBillId,
-          updateBillInput: {
-            status: "Closed",
-            paidAt: new Date().toISOString(),
-          },
         },
       });
 
-      if (data.updateBill.success) {
-        console.log("Bill paid successfully");
+      if (billData.settleBill.success) {
+        console.log("Bill settled successfully");
+
         setCurrentBillId(null);
         setCurrentOrderId(null);
+
         await unlockTable(currentTable, currentStaff.username);
         await fetchTables();
         setCurrentTable(null);
-        refetchBill();
+        await refetchBill();
       } else {
-        console.error("Failed to pay bill:", data.updateBill.message);
+        console.error("Failed to settle bill:", billData.settleBill.message);
       }
     } catch (error) {
-      console.error("Error paying bill:", error);
+      console.error("Error settling bill:", error);
       // TODO: implement toastbox for error handling
     }
   };

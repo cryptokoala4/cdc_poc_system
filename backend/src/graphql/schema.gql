@@ -113,6 +113,7 @@ type Mutation {
   deleteBill(id: ID!): BillOperationResult!
   lockTable(tableId: ID!, username: String!): TableOperationResult!
   unlockTable(tableId: ID!, username: String!): TableOperationResult!
+  updateTable(_id: ID!, isOccupied: Boolean, currentBillId: ID): TableOperationResult!
   createOrder(createOrderInput: CreateOrderInput!, username: String!): OrderOperationResult!
   updateOrder(_id: ID!, updateOrderDto: UpdateOrderDto!): OrderOperationResult!
   closeOrder(_id: ID!): OrderOperationResult!
@@ -134,7 +135,6 @@ input UpdateBillDto {
   orderId: ID
   totalAmount: Float
   status: String
-  paidAt: DateTime
   paymentMethod: String
 }
 

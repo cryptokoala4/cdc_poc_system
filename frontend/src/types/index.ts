@@ -6,7 +6,6 @@ export interface Table {
   capacity: number;
   isOccupied: boolean;
   currentBillId: string | null;
-  customerId: string | null;
 }
 
 export interface MenuItem {

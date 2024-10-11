@@ -171,4 +171,49 @@ export class TablesService {
       };
     }
   }
+
+  async updateTable(
+    _id: string,
+    updateData: {
+      isOccupied?: boolean;
+      currentBillId?: string | null;
+    },
+  ): Promise<ServiceResponse<Table>> {
+    try {
+      const updatedTable = await this.tableModel.findByIdAndUpdate(
+        _id,
+        {
+          ...(updateData.isOccupied !== undefined && {
+            isOccupied: updateData.isOccupied,
+          }),
+          ...(updateData.currentBillId !== undefined && {
+            currentBillId: updateData.currentBillId
+              ? new Types.ObjectId(updateData.currentBillId)
+              : null,
+          }),
+        },
+        { new: true },
+      );
+
+      if (!updatedTable) {
+        return {
+          success: false,
+          message: 'Error, generic',
+          data: null,
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Table updated successfully',
+        data: updatedTable,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to update table',
+        data: null,
+      };
+    }
+  }
 }

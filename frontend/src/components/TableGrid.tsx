@@ -14,8 +14,13 @@ const TableGrid = () => {
     fetchTables();
   }, [fetchTables]);
 
-  const getTableColor = (isOccupied: boolean, lockedBy: string | null) => {
-    if (isOccupied) return "from-red-600 to-red-800";
+  const getTableColor = (
+    isOccupied: boolean,
+    lockedBy: string | null,
+    currentBillId: string | null
+  ) => {
+    if (currentBillId) return "from-red-600 to-red-800";
+    if (isOccupied) return "from-purple-600 to-purple-800";
     if (lockedBy) return "from-yellow-500 to-yellow-700";
     return "from-green-600 to-green-800";
   };
@@ -23,9 +28,8 @@ const TableGrid = () => {
   const handleTableClick = async (tableId: string) => {
     if (currentTable === tableId) {
       await unlockTable(tableId);
-      setCurrentTable(null);
     } else {
-      setCurrentTable(tableId);
+      await setCurrentTable(tableId);
     }
   };
 
@@ -38,7 +42,8 @@ const TableGrid = () => {
             className={`w-full aspect-square rounded-lg flex flex-col items-center justify-center text-white font-bold overflow-hidden shadow-lg
               bg-gradient-to-br ${getTableColor(
                 table.isOccupied,
-                table.lockedBy
+                table.lockedBy,
+                table.currentBillId
               )}`}
             onClick={() => handleTableClick(table._id)}
             whileHover={{ scale: 1.05 }}

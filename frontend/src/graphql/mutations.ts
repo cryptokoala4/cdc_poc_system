@@ -37,24 +37,21 @@ export const UNLOCK_TABLE = gql`
 `;
 
 export const UPDATE_TABLE = gql`
-  mutation UpdateTable(
-    $_id: ID!
-    $isOccupied: Boolean
-    $currentBillId: ID
-    $customerId: ID
-  ) {
+  mutation UpdateTable($_id: ID!, $isOccupied: Boolean, $currentBillId: ID) {
     updateTable(
       _id: $_id
       isOccupied: $isOccupied
       currentBillId: $currentBillId
-      customerId: $customerId
     ) {
-      _id
-      number
-      seats
-      isOccupied
-      currentBillId
-      customerId
+      success
+      message
+      table {
+        _id
+        number
+        seats
+        isOccupied
+        currentBillId
+      }
     }
   }
 `;
@@ -145,6 +142,20 @@ export const REMOVE_ORDER_FROM_BILL = gql`
         _id
         orderIds
         totalAmount
+      }
+    }
+  }
+`;
+
+export const SETTLE_BILL = gql`
+  mutation SettleBill($id: ID!) {
+    settleBill(id: $id) {
+      success
+      message
+      bill {
+        _id
+        status
+        # paidAt
       }
     }
   }
