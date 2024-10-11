@@ -105,4 +105,33 @@ export class StaffService {
       };
     }
   }
+
+  async login(
+    username: string,
+    password: string,
+  ): Promise<ServiceResponse<Staff | null>> {
+    try {
+      const staff = await this.staffModel
+        .findOne({ username, password })
+        .exec();
+      if (!staff) {
+        return {
+          success: false,
+          message: 'Invalid username or password',
+          data: null,
+        };
+      }
+      return {
+        success: true,
+        message: 'Login successful',
+        data: staff,
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Login failed',
+        data: null,
+      };
+    }
+  }
 }

@@ -110,6 +110,7 @@ type Mutation {
   lockTable(tableId: ID!, username: String!): TableOperationResult!
   unlockTable(tableId: ID!, username: String!): TableOperationResult!
   updateTable(_id: ID!, isOccupied: Boolean, currentBillId: ID): TableOperationResult!
+  login(username: String!, password: String!): StaffOperationResult!
   createOrder(createOrderInput: CreateOrderInput!, username: String!): OrderOperationResult!
   updateOrder(_id: ID!, updateOrderDto: UpdateOrderDto!): OrderOperationResult!
   closeOrder(_id: ID!): OrderOperationResult!

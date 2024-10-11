@@ -20,9 +20,9 @@ export interface MenuStore {
 }
 
 export interface StaffStore {
-  staff: Staff[];
   currentStaff: Staff | null;
   setCurrentStaff: (staff: Staff | null) => void;
+  logout: () => void;
 }
 
 export interface OrderStore {

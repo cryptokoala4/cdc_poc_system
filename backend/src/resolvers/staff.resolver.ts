@@ -1,4 +1,12 @@
-import { Resolver, Query, Args, ID, ObjectType, Field } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Args,
+  ID,
+  ObjectType,
+  Field,
+  Mutation,
+} from '@nestjs/graphql';
 import { StaffService } from '../services/staff.service';
 import { Staff } from '../entities/staff.entity';
 
@@ -34,6 +42,19 @@ export class StaffResolver {
       message: response.data
         ? 'Staff found successfully'
         : `Staff with ID ${id} not found`,
+      staff: response.data,
+    };
+  }
+
+  @Mutation(() => StaffOperationResult)
+  async login(
+    @Args('username') username: string,
+    @Args('password') password: string,
+  ): Promise<StaffOperationResult> {
+    const response = await this.staffService.login(username, password);
+    return {
+      success: response.success,
+      message: response.message,
       staff: response.data,
     };
   }
