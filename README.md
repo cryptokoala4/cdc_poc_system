@@ -64,3 +64,7 @@ npm run dev
 - Backend GraphQL Playground: `http://localhost:3000/graphql`
 
 Remember to set up your `.env` file in both the `backend` and `frontend` directories with the necessary environment variables for development mode. The `.env` in `backend` uses the same as the one from your project root directory, and `frontend` currently does not require a `.env` file. 
+
+## Known issues
+- Temporary authentication with non-encrypted credentials in database. For development purposes only
+- Firefox users may experience login difficulties due to browser security policies
