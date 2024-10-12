@@ -13,17 +13,6 @@ export const GET_MENU_ITEMS = gql`
   }
 `;
 
-export const GET_STAFF = gql`
-  query GetStaff {
-    staff {
-      _id
-      name
-      username
-      role
-    }
-  }
-`;
-
 export const GET_TABLES = gql`
   query GetTables {
     tables {

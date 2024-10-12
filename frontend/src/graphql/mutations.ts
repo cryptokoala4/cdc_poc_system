@@ -158,7 +158,6 @@ export const SETTLE_BILL = gql`
       bill {
         _id
         status
-        # paidAt
       }
     }
   }
