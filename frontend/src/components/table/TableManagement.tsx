@@ -10,11 +10,9 @@ import { useMutation, useQuery } from "@apollo/client";
 import * as mutations from "../../graphql/mutations";
 import { GET_CURRENT_BILL } from "../../graphql/queries";
 import { useToast } from "../../hooks/useToast";
-import OrderList from "./OrderList";
 import MenuItems from "./MenuItems";
 import TableActions from "./TableActions";
 import LockedTables from "./LockedTables";
-import { calculateTotal } from "../../utils/orderUtils";
 import { MenuItem, OrderItem } from "../../types";
 import BillSummary from "../BillSummary";
 
@@ -22,7 +20,8 @@ const TableManagement = () => {
   const { showToast } = useToast();
   const { currentTable, setCurrentTable, tables, fetchTables, unlockTable } =
     useTableStore();
-  const { orders, addOrderItem, removeOrderItem, clearOrder } = useOrderStore();
+  const { orders, addOrderItem, removeOrderItem, clearOrder, clearAllOrders } =
+    useOrderStore();
   const { menuItems, fetchMenuItems } = useMenuStore();
   const { currentStaff } = useStaffStore();
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
@@ -31,7 +30,6 @@ const TableManagement = () => {
 
   const [createOrder] = useMutation(mutations.CREATE_ORDER);
   const [updateOrder] = useMutation(mutations.UPDATE_ORDER);
-  // const [updateBill] = useMutation(mutations.UPDATE_BILL);
   const [settleBill] = useMutation(mutations.SETTLE_BILL);
   const [removeOrderFromBill] = useMutation(mutations.REMOVE_ORDER_FROM_BILL);
 
@@ -53,8 +51,13 @@ const TableManagement = () => {
     if (currentTable) {
       refetchBill();
       clearOrder(currentTable);
+      setHasUnsavedChanges(false);
+      setCurrentOrderId(null);
+      setCurrentBillId(null);
+    } else {
+      clearAllOrders();
     }
-  }, [currentTable, refetchBill, clearOrder]);
+  }, [currentTable, refetchBill, clearOrder, clearAllOrders]);
 
   useEffect(() => {
     if (billData?.getCurrentBillForTable) {
@@ -64,7 +67,6 @@ const TableManagement = () => {
           billData.getCurrentBillForTable.orders.length - 1
         ];
       setCurrentOrderId(currentOrder ? currentOrder._id : null);
-      // Populate the order store with the current order items
       if (currentOrder && currentTable) {
         clearOrder(currentTable);
         currentOrder.items.forEach((item: OrderItem) => {
@@ -156,7 +158,7 @@ const TableManagement = () => {
         showToast(data.createOrder.message, "success");
         setCurrentOrderId(data.createOrder.order._id);
         setHasUnsavedChanges(false);
-        clearOrder(currentTable); // Clear the current order after successful creation
+        clearOrder(currentTable);
         await refetchBill();
         await fetchTables();
       } else {
@@ -225,8 +227,8 @@ const TableManagement = () => {
         showToast(data.settleBill.message, "success");
         setCurrentBillId(null);
         setCurrentOrderId(null);
-        clearOrder(currentTable);
         setHasUnsavedChanges(false);
+        clearOrder(currentTable);
         await unlockTable(currentTable);
         await fetchTables();
         setCurrentTable(null);
@@ -300,7 +302,6 @@ const TableManagement = () => {
   };
 
   const currentOrder = currentTable ? orders[currentTable] || [] : [];
-  const total = calculateTotal(currentOrder);
   const lockedTables = tables.filter((table) => table.lockedBy);
 
   return (
@@ -344,35 +345,19 @@ const TableManagement = () => {
                 </h3>
                 {billLoading ? (
                   <p className="text-gray-400 text-sm">Loading bill...</p>
-                ) : billData?.getCurrentBillForTable ? (
+                ) : (
                   <div className="bg-gray-700 p-1 rounded-lg">
                     <BillSummary
-                      bill={billData.getCurrentBillForTable}
+                      bill={billData?.getCurrentBillForTable || null}
                       currentOrder={currentOrder}
                       onRemoveOrder={handleRemoveOrderFromBill}
+                      onRemoveItem={handleRemoveItem}
                     />
                   </div>
-                ) : (
-                  <p className="text-gray-400 text-sm">
-                    No active bill for this table.
-                  </p>
                 )}
               </motion.div>
             )}
           </AnimatePresence>
-
-          <div className="mb-3">
-            <h3 className="font-semibold mb-1 text-white text-sm">
-              Current Order
-            </h3>
-            <div className="bg-gray-700 p-1 rounded-lg">
-              <OrderList
-                order={currentOrder}
-                onRemoveItem={handleRemoveItem}
-                total={total}
-              />
-            </div>
-          </div>
         </div>
         {currentTable && (
           <motion.div

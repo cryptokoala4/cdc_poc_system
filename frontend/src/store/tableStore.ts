@@ -4,6 +4,7 @@ import { client } from "../lib/apolloClient";
 import { GET_TABLES } from "../graphql/queries";
 import { LOCK_TABLE, UNLOCK_TABLE } from "../graphql/mutations";
 import { useStaffStore } from "./staffStore";
+import useOrderStore from "./orderStore";
 
 interface TableOperationResult {
   success: boolean;
@@ -81,6 +82,7 @@ export const useTableStore = create<TableStore>((set, get) => ({
       }
     } else {
       set({ currentTable: null });
+      useOrderStore.getState().clearAllOrders(); // Clear all orders when deselecting a table
       return {
         success: true,
         message: "Table selection cleared",
@@ -105,6 +107,7 @@ export const useTableStore = create<TableStore>((set, get) => ({
           currentTable: null,
         }));
 
+        useOrderStore.getState().clearOrder(tableId);
         await get().fetchTables();
       }
       return data.unlockTable;
