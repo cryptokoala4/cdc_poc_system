@@ -15,7 +15,6 @@ export const useMenuStore = create<MenuStore>((set) => ({
         query: GET_MENU_ITEMS,
         fetchPolicy: "network-only",
       });
-      console.log(data)
       set({ menuItems: data.menuItems, isLoading: false });
     } catch (error) {
       console.error("Error fetching menu items:", error);

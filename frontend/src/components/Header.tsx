@@ -22,10 +22,6 @@ export default function Header({
 }: HeaderProps) {
   const { currentStaff, logout } = useStaffStore();
 
-  const handleLogout = () => {
-    logout();
-  };
-
   return (
     <header className="fixed top-0 left-0 right-0 bg-gray-800 text-white p-2 h-12 sm:h-14 md:h-18 flex items-center justify-between z-50">
       <h1 className="font-bold mr-4 text-sm sm:text-base">
@@ -43,19 +39,20 @@ export default function Header({
           <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
         </div>
         <div className="flex items-center space-x-2">
-          <button
-            onClick={() => handleZoom("out")}
-            className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
-          >
-            <MinusIcon className="h-5 w-5 text-white" />
-          </button>
-          <span className="text-white">{Math.round(zoom * 100) || 0}%</span>
-          <button
-            onClick={() => handleZoom("in")}
-            className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
-          >
-            <PlusIcon className="h-5 w-5 text-white" />
-          </button>
+          {["out", "in"].map((direction) => (
+            <button
+              key={direction}
+              onClick={() => handleZoom(direction as "in" | "out")}
+              className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
+            >
+              {direction === "out" ? (
+                <MinusIcon className="h-5 w-5 text-white" />
+              ) : (
+                <PlusIcon className="h-5 w-5 text-white" />
+              )}
+            </button>
+          ))}
+          <span className="text-white">{Math.round(zoom * 100)}%</span>
         </div>
       </div>
       {currentStaff && (
@@ -64,7 +61,7 @@ export default function Header({
             Welcome, {currentStaff.name}
           </span>
           <button
-            onClick={handleLogout}
+            onClick={logout}
             className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 sm:px-4 rounded text-sm sm:text-base"
           >
             Logout
