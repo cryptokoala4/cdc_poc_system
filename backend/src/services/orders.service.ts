@@ -171,6 +171,31 @@ export class OrdersService {
         0,
       );
 
+      if (newTotalAmount === 0) {
+        // All items removed, delete the order and potentially the bill
+        await this.orderModel.findByIdAndDelete(_id);
+        const bill = await this.billModel.findOne({ orderIds: order._id });
+        if (bill) {
+          bill.orderIds = bill.orderIds.filter((id) => id.toString() !== _id);
+          bill.totalAmount -= order.totalAmount;
+          if (bill.orderIds.length === 0) {
+            // If this was the last order, delete the bill and reset the table
+            await this.billModel.findByIdAndDelete(bill._id);
+            await this.tableModel.findByIdAndUpdate(order.tableId, {
+              isOccupied: false,
+              currentBillId: null,
+            });
+          } else {
+            await bill.save();
+          }
+        }
+        return {
+          success: true,
+          message: 'Order removed as all items were deleted',
+          data: null,
+        };
+      }
+
       const updatedOrder = await this.orderModel
         .findByIdAndUpdate(
           new Types.ObjectId(_id),

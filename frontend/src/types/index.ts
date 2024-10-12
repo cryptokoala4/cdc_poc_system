@@ -1,4 +1,4 @@
-export type TableStatus = 'available' | 'locked';
+export type TableStatus = "available" | "locked";
 
 export interface Table {
   _id: string;
@@ -6,7 +6,7 @@ export interface Table {
   seats: number;
   isOccupied: boolean;
   currentBillId: string | null;
-  lockedBy: string;
+  lockedBy: string | null;
 }
 
 export interface MenuItem {
@@ -28,7 +28,7 @@ export interface Staff {
 
 export interface OrderItem {
   _id: string;
-  itemId?: number;
+  itemId: string;
   name: string;
   price: number;
   quantity: number;
@@ -37,13 +37,14 @@ export interface OrderItem {
 export interface Order {
   _id: string;
   tableId: string;
+  username: string;
   items: OrderItem[];
   totalAmount: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: "pending" | "completed" | "cancelled";
 }
 
 export interface Bill {
-  _id: number;
+  _id: string;
   tableId: string;
   username: string;
   orders: Order[];

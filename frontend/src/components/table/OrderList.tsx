@@ -1,34 +1,43 @@
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MenuItem } from "../../types";
+import { OrderItem } from "../../types";
 
 interface OrderListProps {
-  order: MenuItem[];
+  order: OrderItem[];
   onRemoveItem: (itemId: string) => void;
   total: number;
 }
 
-const OrderList = ({ order, onRemoveItem, total }: OrderListProps) => {
+const OrderList: React.FC<OrderListProps> = ({
+  order,
+  onRemoveItem,
+  total,
+}) => {
+  if (order.length === 0) {
+    return <p className="text-gray-400 p-4">No items in the current order.</p>;
+  }
+
   return (
     <div className="bg-gray-700 rounded-lg p-4">
       <AnimatePresence>
-        {order.map((item) => (
+        {order.map((item, index) => (
           <motion.div
-            key={item._id}
+            key={`${item.itemId || item._id || index}`}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             className="flex justify-between items-center mb-2"
           >
             <span className="text-white">
-              {item.name} x{item.quantity}
+              {item.name || `Item ${item.itemId || index + 1}`} x{item.quantity}
             </span>
             <div className="flex items-center">
               <span className="text-green-500 mr-2">
                 ${(item.price * item.quantity).toFixed(2)}
               </span>
               <button
-                onClick={() => onRemoveItem(item._id)}
-                className="text-red-500 hover:text-red-600"
+                onClick={() => onRemoveItem(item.itemId || item._id)}
+                className="text-red-500 hover:text-red-600 transition-colors"
               >
                 Remove
               </button>

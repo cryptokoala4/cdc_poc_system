@@ -1,67 +1,60 @@
+import React from "react";
+
 interface TableActionsProps {
   currentOrderId: string | null;
   currentBillId: string | null;
+  hasItems: boolean;
+  hasUnsavedChanges: boolean;
   onCreateOrder: () => void;
   onUpdateOrder: () => void;
-  onCreateBill: () => void;
   onPayBill: () => void;
   onCloseTable: () => void;
-  isLoading: boolean;
 }
 
-const TableActions = ({
-  currentOrderId,
+const TableActions: React.FC<TableActionsProps> = ({
   currentBillId,
+  hasItems,
+  hasUnsavedChanges,
   onCreateOrder,
   onUpdateOrder,
-  onCreateBill,
   onPayBill,
   onCloseTable,
-  isLoading,
-}: TableActionsProps) => {
+}) => {
   return (
     <div className="space-y-2">
       {!currentBillId ? (
-        <>
-          <button
-            onClick={onCreateBill}
-            disabled={isLoading}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
-          >
-            {currentOrderId ? "New Order" : "Create Bill"}
-          </button>
-          {currentOrderId && (
-            <>
-              {/* <button
-                onClick={onUpdateOrder}
-                disabled={isLoading}
-                className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
-              >
-                Update Order 1111
-              </button> */}
-              {/* <button
-                onClick={onCreateBill}
-                disabled={isLoading}
-                className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
-              >
-                Create Bill
-              </button> */}
-            </>
-          )}
-        </>
+        <button
+          onClick={onCreateOrder}
+          disabled={!hasItems}
+          className={`w-full py-2 px-4 rounded font-bold ${
+            hasItems
+              ? "bg-green-500 hover:bg-green-700 text-white"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+        >
+          Create Order
+        </button>
       ) : (
         <>
           <button
             onClick={onUpdateOrder}
-            disabled={isLoading}
-            className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
+            disabled={!hasUnsavedChanges}
+            className={`w-full py-2 px-4 rounded font-bold ${
+              hasUnsavedChanges
+                ? "bg-yellow-500 hover:bg-yellow-700 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
-            Update Order 22222
+            Update Order
           </button>
           <button
             onClick={onPayBill}
-            disabled={isLoading}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
+            disabled={!hasItems}
+            className={`w-full py-2 px-4 rounded font-bold ${
+              hasItems
+                ? "bg-blue-500 hover:bg-blue-700 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             Pay Bill
           </button>
@@ -69,8 +62,7 @@ const TableActions = ({
       )}
       <button
         onClick={onCloseTable}
-        disabled={isLoading}
-        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
+        className="w-full py-2 px-4 rounded font-bold bg-red-500 hover:bg-red-700 text-white"
       >
         Unlock Table
       </button>

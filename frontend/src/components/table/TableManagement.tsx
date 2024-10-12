@@ -15,27 +15,25 @@ import MenuItems from "./MenuItems";
 import TableActions from "./TableActions";
 import LockedTables from "./LockedTables";
 import { calculateTotal } from "../../utils/orderUtils";
-import { MenuItem } from "../../types";
+import { MenuItem, OrderItem } from "../../types";
 import BillSummary from "../BillSummary";
 
 const TableManagement = () => {
   const { showToast } = useToast();
   const { currentTable, setCurrentTable, tables, fetchTables, unlockTable } =
     useTableStore();
-  const { orders, addOrderItem, removeOrderItem } = useOrderStore();
+  const { orders, addOrderItem, removeOrderItem, clearOrder } = useOrderStore();
   const { menuItems, fetchMenuItems } = useMenuStore();
   const { currentStaff } = useStaffStore();
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const [currentBillId, setCurrentBillId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [createOrder] = useMutation(mutations.CREATE_ORDER);
   const [updateOrder] = useMutation(mutations.UPDATE_ORDER);
-  const [createBill] = useMutation(mutations.CREATE_BILL);
-  const [updateBill] = useMutation(mutations.UPDATE_BILL);
-  const [removeOrderFromBill] = useMutation(mutations.REMOVE_ORDER_FROM_BILL);
-  const [updateTable] = useMutation(mutations.UPDATE_TABLE);
+  // const [updateBill] = useMutation(mutations.UPDATE_BILL);
   const [settleBill] = useMutation(mutations.SETTLE_BILL);
+  const [removeOrderFromBill] = useMutation(mutations.REMOVE_ORDER_FROM_BILL);
 
   const {
     data: billData,
@@ -52,8 +50,11 @@ const TableManagement = () => {
   }, [fetchMenuItems, fetchTables]);
 
   useEffect(() => {
-    if (currentTable) refetchBill();
-  }, [currentTable, refetchBill]);
+    if (currentTable) {
+      refetchBill();
+      clearOrder(currentTable);
+    }
+  }, [currentTable, refetchBill, clearOrder]);
 
   useEffect(() => {
     if (billData?.getCurrentBillForTable) {
@@ -63,11 +64,18 @@ const TableManagement = () => {
           billData.getCurrentBillForTable.orders.length - 1
         ];
       setCurrentOrderId(currentOrder ? currentOrder._id : null);
+      // Populate the order store with the current order items
+      if (currentOrder && currentTable) {
+        clearOrder(currentTable);
+        currentOrder.items.forEach((item: OrderItem) => {
+          addOrderItem(currentTable, item);
+        });
+      }
     } else {
       setCurrentBillId(null);
       setCurrentOrderId(null);
     }
-  }, [billData]);
+  }, [billData, currentTable, addOrderItem, clearOrder]);
 
   const handleCloseTable = useCallback(async () => {
     if (currentTable && currentStaff) {
@@ -79,6 +87,7 @@ const TableManagement = () => {
           setCurrentTable(null);
           setCurrentOrderId(null);
           setCurrentBillId(null);
+          clearOrder(currentTable);
         } else {
           showToast(result.message, "error");
         }
@@ -93,6 +102,7 @@ const TableManagement = () => {
     fetchTables,
     setCurrentTable,
     showToast,
+    clearOrder,
   ]);
 
   const handleSwitchTable = useCallback(
@@ -112,26 +122,6 @@ const TableManagement = () => {
     [currentTable, setCurrentTable, currentStaff, showToast]
   );
 
-  const handleMutation = async (
-    mutation: any,
-    variables: any,
-    successMessage: string,
-    errorMessage: string
-  ) => {
-    setIsLoading(true);
-    try {
-      const { data } = await mutation({ variables });
-      const result = data[Object.keys(data)[0]];
-      showToast(result.message, result.success ? "success" : "error");
-      return result;
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : errorMessage, "error");
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleCreateOrder = async () => {
     if (!currentTable || !currentStaff) {
       showToast("Cannot create order: no table or staff selected", "error");
@@ -150,29 +140,33 @@ const TableManagement = () => {
       return;
     }
 
-    const result = await handleMutation(
-      createOrder,
-      {
-        createOrderInput: {
-          tableId: currentTable,
-          items: orderItems,
+    try {
+      const { data } = await createOrder({
+        variables: {
+          createOrderInput: {
+            tableId: currentTable,
+            items: orderItems,
+            username: currentStaff.username,
+          },
           username: currentStaff.username,
         },
-        username: currentStaff.username,
-      },
-      "Order created successfully",
-      "Error creating order"
-    );
+      });
 
-    if (result?.success) {
-      setCurrentOrderId(result.order._id);
-      if (!currentBillId) {
-        await handleCreateBill();
+      if (data.createOrder.success) {
+        showToast(data.createOrder.message, "success");
+        setCurrentOrderId(data.createOrder.order._id);
+        setHasUnsavedChanges(false);
+        clearOrder(currentTable); // Clear the current order after successful creation
+        await refetchBill();
+        await fetchTables();
       } else {
-        await handleAddOrderToBill(result.order._id);
+        showToast(data.createOrder.message, "error");
       }
-      await refetchBill();
-      await fetchTables();
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Error creating order",
+        "error"
+      );
     }
   };
 
@@ -184,61 +178,33 @@ const TableManagement = () => {
 
     const currentOrder = orders[currentTable] || [];
     const orderItems = currentOrder.map((item) => ({
-      itemId: item._id,
+      itemId: item.itemId,
       quantity: item.quantity,
       price: item.price,
     }));
 
-    await handleMutation(
-      updateOrder,
-      { _id: currentOrderId, updateOrderDto: { items: orderItems } },
-      "Order updated successfully",
-      "Error updating order"
-    );
-  };
-
-  const handleCreateBill = async () => {
-    if (!currentTable || !currentStaff) {
-      showToast("Cannot create bill: no table or staff selected", "error");
-      return;
-    }
-
-    const currentOrder = orders[currentTable] || [];
-    const orderItems = currentOrder.map((item) => ({
-      itemId: item._id,
-      quantity: item.quantity,
-      price: item.price,
-    }));
-
-    if (orderItems.length === 0) {
-      showToast("Cannot create a bill without order items", "error");
-      return;
-    }
-
-    const result = await handleMutation(
-      createBill,
-      {
-        createBillInput: {
-          tableId: currentTable,
-          username: currentStaff.username,
-          orderItems,
-        },
-      },
-      "Bill created successfully",
-      "Error creating bill"
-    );
-
-    if (result?.success) {
-      setCurrentBillId(result.bill._id);
-      await updateTable({
+    try {
+      const { data } = await updateOrder({
         variables: {
-          _id: currentTable,
-          isOccupied: true,
-          currentBillId: result.bill._id,
+          _id: currentOrderId,
+          updateOrderDto: {
+            items: orderItems,
+          },
         },
       });
-      await refetchBill();
-      await fetchTables();
+
+      if (data.updateOrder.success) {
+        showToast(data.updateOrder.message, "success");
+        setHasUnsavedChanges(false);
+        await refetchBill();
+      } else {
+        showToast(data.updateOrder.message, "error");
+      }
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Error updating order",
+        "error"
+      );
     }
   };
 
@@ -248,71 +214,90 @@ const TableManagement = () => {
       return;
     }
 
-    const result = await handleMutation(
-      settleBill,
-      { id: currentBillId },
-      "Bill settled successfully",
-      "Error settling bill"
-    );
+    try {
+      const { data } = await settleBill({
+        variables: {
+          id: currentBillId,
+        },
+      });
 
-    if (result?.success) {
-      setCurrentBillId(null);
-      setCurrentOrderId(null);
-
-      await Promise.all([
-        unlockTable(currentTable),
-        fetchTables(),
-        refetchBill(),
-      ]);
-
-      setCurrentTable(null);
+      if (data.settleBill.success) {
+        showToast(data.settleBill.message, "success");
+        setCurrentBillId(null);
+        setCurrentOrderId(null);
+        clearOrder(currentTable);
+        setHasUnsavedChanges(false);
+        await unlockTable(currentTable);
+        await fetchTables();
+        setCurrentTable(null);
+        await refetchBill();
+      } else {
+        showToast(data.settleBill.message, "error");
+      }
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Error settling bill",
+        "error"
+      );
     }
-  };
-  const handleAddOrderToBill = async (orderId: string) => {
-    if (!currentBillId) {
-      showToast("No active bill to add order to", "error");
-      return;
-    }
-
-    await handleMutation(
-      updateBill,
-      { id: currentBillId, updateBillInput: { orderId } },
-      "Order added to bill successfully",
-      "Error adding order to bill"
-    );
-
-    await refetchBill();
-  };
-
-  const handleRemoveOrderFromBill = async (orderId: string) => {
-    if (!billData?.getCurrentBillForTable) {
-      showToast("No active bill to remove order from", "error");
-      return;
-    }
-
-    await handleMutation(
-      removeOrderFromBill,
-      { billId: billData.getCurrentBillForTable._id, orderId },
-      "Order removed from bill successfully",
-      "Error removing order from bill"
-    );
-
-    await refetchBill();
   };
 
   const handleAddItem = useCallback(
     (item: MenuItem) => {
-      if (currentTable) addOrderItem(currentTable, item);
+      if (currentTable) {
+        const orderItem: OrderItem = {
+          _id: item._id,
+          itemId: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: 1,
+        };
+        addOrderItem(currentTable, orderItem);
+        setHasUnsavedChanges(true);
+      }
     },
     [currentTable, addOrderItem]
   );
 
   const handleRemoveItem = useCallback(
     (itemId: string) => {
-      if (currentTable) removeOrderItem(currentTable, itemId);
+      if (currentTable) {
+        removeOrderItem(currentTable, itemId);
+        setHasUnsavedChanges(true);
+      }
     },
     [currentTable, removeOrderItem]
   );
+
+  const handleRemoveOrderFromBill = async (orderId: string) => {
+    if (!currentBillId) {
+      showToast("No active bill to remove order from", "error");
+      return;
+    }
+
+    try {
+      const { data } = await removeOrderFromBill({
+        variables: {
+          billId: currentBillId,
+          orderId,
+        },
+      });
+
+      if (data.removeOrderFromBill.success) {
+        showToast(data.removeOrderFromBill.message, "success");
+        await refetchBill();
+      } else {
+        showToast(data.removeOrderFromBill.message, "error");
+      }
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Error removing order from bill",
+        "error"
+      );
+    }
+  };
 
   const currentOrder = currentTable ? orders[currentTable] || [] : [];
   const total = calculateTotal(currentOrder);
@@ -350,6 +335,7 @@ const TableManagement = () => {
                 ) : billData?.getCurrentBillForTable ? (
                   <BillSummary
                     bill={billData.getCurrentBillForTable}
+                    currentOrder={currentOrder}
                     onRemoveOrder={handleRemoveOrderFromBill}
                   />
                 ) : (
@@ -390,12 +376,12 @@ const TableManagement = () => {
             <TableActions
               currentOrderId={currentOrderId}
               currentBillId={currentBillId}
+              hasItems={currentOrder.length > 0}
+              hasUnsavedChanges={hasUnsavedChanges}
               onCreateOrder={handleCreateOrder}
               onUpdateOrder={handleUpdateOrder}
-              onCreateBill={handleCreateBill}
               onPayBill={handlePayBill}
               onCloseTable={handleCloseTable}
-              isLoading={isLoading}
             />
           </motion.div>
         )}

@@ -113,11 +113,7 @@ export class BillsService {
   }
 
   async settleBill(billId: string): Promise<ServiceResponse<Bill>> {
-    const bill = await this.billModel.findByIdAndUpdate(
-      billId,
-      { status: 'Closed', paidAt: new Date() },
-      { new: true },
-    );
+    const bill = await this.billModel.findById(billId);
 
     if (!bill) {
       return {
@@ -126,6 +122,15 @@ export class BillsService {
         data: null,
       };
     }
+
+    // Close all associated orders
+    await this.orderModel.updateMany(
+      { _id: { $in: bill.orderIds } },
+      { status: 'Closed' },
+    );
+
+    bill.status = 'Closed';
+    await bill.save();
 
     await this.tableModel.findByIdAndUpdate(bill.tableId, {
       isOccupied: false,

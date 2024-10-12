@@ -1,14 +1,10 @@
 import { create } from "zustand";
-import { MenuItem } from "../types";
+import { OrderItem } from "../types";
 import { calculateTotal } from "../utils/orderUtils";
-
-interface OrderItem extends MenuItem {
-  quantity: number;
-}
 
 interface OrderState {
   orders: { [tableId: string]: OrderItem[] };
-  addOrderItem: (tableId: string, item: MenuItem) => void;
+  addOrderItem: (tableId: string, item: OrderItem) => void;
   removeOrderItem: (tableId: string, itemId: string) => void;
   clearOrder: (tableId: string) => void;
   getTotal: (tableId: string) => number;
@@ -18,11 +14,11 @@ interface OrderState {
 const useOrderStore = create<OrderState>((set, get) => ({
   orders: {},
 
-  addOrderItem: (tableId: string, item: MenuItem) =>
+  addOrderItem: (tableId: string, item: OrderItem) =>
     set((state) => {
       const tableOrder = state.orders[tableId] || [];
       const existingItemIndex = tableOrder.findIndex(
-        (orderItem) => orderItem._id === item._id
+        (orderItem) => orderItem.itemId === item.itemId
       );
 
       let newTableOrder;
@@ -33,7 +29,7 @@ const useOrderStore = create<OrderState>((set, get) => ({
             : orderItem
         );
       } else {
-        newTableOrder = [...tableOrder, { ...item, quantity: 1 }];
+        newTableOrder = [...tableOrder, item];
       }
 
       return {
@@ -49,7 +45,7 @@ const useOrderStore = create<OrderState>((set, get) => ({
       const tableOrder = state.orders[tableId] || [];
       const newTableOrder = tableOrder
         .map((item) =>
-          item._id === itemId ? { ...item, quantity: item.quantity - 1 } : item
+          item.itemId === itemId ? { ...item, quantity: item.quantity - 1 } : item
         )
         .filter((item) => item.quantity > 0);
 
