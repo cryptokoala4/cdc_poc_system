@@ -20,7 +20,7 @@ const BillSummary = ({
   const totalAmount = (bill?.totalAmount || 0) + currentOrderTotal;
 
   return (
-    <div className="mb-4 bg-gray-800 p-4 rounded-lg text-white">
+    <div className="bg-gray-800 p-4 rounded-lg text-white">
       <h3 className="font-semibold mb-2 text-xl">Current Bill</h3>
       {bill && <p className="mb-2">Staff: {bill.username}</p>}
       <p className="mb-4 text-lg font-bold">Total: ${totalAmount.toFixed(2)}</p>
@@ -30,7 +30,7 @@ const BillSummary = ({
           <div key={order._id} className="mb-4 p-3 bg-gray-700 rounded">
             <div className="flex justify-between items-center mb-2">
               <h4 className="font-semibold text-lg">
-                Order {order._id.slice(-4)}
+                Order # {order._id.slice(-8)}
               </h4>
             </div>
             <ul className="mt-2 space-y-1">

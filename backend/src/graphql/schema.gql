@@ -6,6 +6,7 @@ type OrderItem {
   itemId: ID!
   quantity: Float!
   price: Float
+  name: String
 }
 
 type Order {
@@ -127,6 +128,7 @@ input OrderItemInput {
   itemId: ID!
   quantity: Float!
   price: Float!
+  name: String!
 }
 
 input UpdateBillDto {

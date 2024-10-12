@@ -30,7 +30,7 @@ const useOrderStore = create<OrderState>((set, get) => ({
             : orderItem
         );
       } else {
-        newTableOrder = [...tableOrder, item];
+        newTableOrder = [...tableOrder, { ...item, quantity: 1 }];
       }
 
       return {

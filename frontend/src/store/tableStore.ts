@@ -12,22 +12,31 @@ interface TableOperationResult {
   table: Table | null;
 }
 
-interface TableStore {
+interface TableState {
   tables: Table[];
   isLoading: boolean;
   error: string | null;
   currentTable: string | null;
+}
+
+interface TableActions {
   fetchTables: () => Promise<void>;
   setCurrentTable: (tableId: string | null) => Promise<TableOperationResult>;
   unlockTable: (tableId: string) => Promise<TableOperationResult>;
   clearError: () => void;
 }
 
-export const useTableStore = create<TableStore>((set, get) => ({
+type TableStore = TableState & TableActions;
+
+const initialState: TableState = {
   tables: [],
   isLoading: false,
   error: null,
   currentTable: null,
+};
+
+export const useTableStore = create<TableStore>((set, get) => ({
+  ...initialState,
 
   fetchTables: async () => {
     set({ isLoading: true, error: null });
@@ -48,44 +57,40 @@ export const useTableStore = create<TableStore>((set, get) => ({
   },
 
   setCurrentTable: async (tableId) => {
-    if (tableId) {
-      try {
-        const username = useStaffStore.getState().currentStaff?.username || "";
-        const { data } = await client.mutate({
-          mutation: LOCK_TABLE,
-          variables: { tableId, username },
-        });
-
-        if (data?.lockTable?.success) {
-          set((state) => ({
-            tables: state.tables.map((t) =>
-              t._id === tableId ? { ...t, ...data.lockTable.table } : t
-            ),
-            currentTable: tableId,
-          }));
-        }
-        return data.lockTable;
-      } catch (error) {
-        console.error("Error locking table:", error);
-        set({
-          error:
-            error instanceof Error
-              ? error.message
-              : "Failed to lock table. Please try again.",
-        });
-        return {
-          success: false,
-          message:
-            error instanceof Error ? error.message : "Failed to lock table",
-          table: null,
-        };
-      }
-    } else {
+    if (!tableId) {
       set({ currentTable: null });
-      useOrderStore.getState().clearAllOrders(); // Clear all orders when deselecting a table
+      useOrderStore.getState().clearAllOrders();
+      return { success: true, message: "Table selection cleared", table: null };
+    }
+
+    try {
+      const username = useStaffStore.getState().currentStaff?.username || "";
+      const { data } = await client.mutate({
+        mutation: LOCK_TABLE,
+        variables: { tableId, username },
+      });
+
+      if (data?.lockTable?.success) {
+        set((state) => ({
+          tables: state.tables.map((t) =>
+            t._id === tableId ? { ...t, ...data.lockTable.table } : t
+          ),
+          currentTable: tableId,
+        }));
+      }
+      return data.lockTable;
+    } catch (error) {
+      console.error("Error locking table:", error);
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to lock table. Please try again.",
+      });
       return {
-        success: true,
-        message: "Table selection cleared",
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to lock table",
         table: null,
       };
     }

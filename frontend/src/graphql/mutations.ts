@@ -70,7 +70,9 @@ export const CREATE_ORDER = gql`
         username
         items {
           itemId
+          name
           quantity
+          price
         }
         totalAmount
         status
@@ -92,6 +94,7 @@ export const UPDATE_ORDER = gql`
           itemId
           quantity
           price
+          name
         }
         totalAmount
         status

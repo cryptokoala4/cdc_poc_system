@@ -23,6 +23,7 @@ export class Order {
       itemId: { type: Types.ObjectId, ref: 'Item' },
       quantity: Number,
       price: Number,
+      name: String,
     },
   ])
   items: OrderItem[];

@@ -62,6 +62,7 @@ export const GET_CURRENT_BILL = gql`
         _id
         items {
           itemId
+          name
           quantity
           price
         }

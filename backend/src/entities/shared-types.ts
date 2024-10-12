@@ -1,4 +1,4 @@
-import { ObjectType, InputType, Field, ID, Int, Float } from '@nestjs/graphql';
+import { ObjectType, InputType, Field, ID, Float } from '@nestjs/graphql';
 import { Types } from 'mongoose';
 import { IsNumber, IsString, Min } from 'class-validator';
 
@@ -12,6 +12,9 @@ export class OrderItem {
 
   @Field(() => Float, { nullable: true })
   price: number;
+
+  @Field(() => String, { nullable: true })
+  name: string;
 }
 
 @InputType()
@@ -29,4 +32,7 @@ export class OrderItemInput {
   @IsNumber()
   @Min(1)
   price: number;
+
+  @Field(() => String)
+  name: string;
 }
