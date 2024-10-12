@@ -19,7 +19,7 @@ export default function Header({
   setSearchTerm = () => {},
   zoom = 1,
   handleZoom = () => {},
-}: HeaderProps)  {
+}: HeaderProps) {
   const { currentStaff, logout } = useStaffStore();
 
   const handleLogout = () => {
@@ -27,11 +27,11 @@ export default function Header({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-gray-800 text-white p-2 flex flex-wrap justify-between items-center z-50">
-      <h1 className=" font-bold mr-4">
-        CDC Restaurant Point of Sales System
+    <header className="fixed top-0 left-0 right-0 bg-gray-800 text-white p-2 h-12 sm:h-14 md:h-18 flex items-center justify-between z-50">
+      <h1 className="font-bold mr-4 text-sm sm:text-base">
+        CDC Restaurant POS
       </h1>
-      <div className="flex items-center space-x-4 flex-grow justify-center">
+      <div className="hidden md:flex items-center space-x-4 flex-grow justify-center">
         <div className="relative">
           <input
             type="text"
@@ -60,10 +60,12 @@ export default function Header({
       </div>
       {currentStaff && (
         <div className="flex items-center">
-          <span className="mr-4">Welcome, {currentStaff.name}</span>
+          <span className="mr-4 text-sm sm:text-base hidden sm:inline">
+            Welcome, {currentStaff.name}
+          </span>
           <button
             onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded"
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 sm:px-4 rounded text-sm sm:text-base"
           >
             Logout
           </button>
