@@ -48,7 +48,8 @@ export class BillsResolver {
 
   @Query(() => Bill, { nullable: true })
   async getCurrentBillForTable(
-    @Args('tableId', { type: () => ID }) tableId: string,
+    // TODO: enhance, temp nullable when a table have no bills
+    @Args('tableId', { type: () => ID, nullable: true }) tableId: string,
   ) {
     return this.billsService.getCurrentBillForTable(tableId);
   }

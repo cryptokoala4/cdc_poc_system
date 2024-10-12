@@ -52,7 +52,7 @@ export const GET_TABLE = gql`
 `;
 
 export const GET_CURRENT_BILL = gql`
-  query GetCurrentBill($tableId: ID!) {
+  query GetCurrentBill($tableId: ID) {
     getCurrentBillForTable(tableId: $tableId) {
       _id
       tableId

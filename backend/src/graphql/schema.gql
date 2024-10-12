@@ -92,7 +92,7 @@ type Query {
   menuItem(id: ID!): MenuItemOperationResult!
   bills: [Bill!]!
   bill(id: ID!): BillOperationResult!
-  getCurrentBillForTable(tableId: ID!): Bill
+  getCurrentBillForTable(tableId: ID): Bill
   tables: [Table!]!
   table(id: ID!): Table!
   getAllStaff: [Staff!]!

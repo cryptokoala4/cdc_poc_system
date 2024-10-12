@@ -19,8 +19,6 @@ export class BillsService {
   ) {}
 
   async getCurrentBillForTable(tableId: string): Promise<Bill | null> {
-    console.log('Getting bill for table:', tableId);
-
     try {
       const bill = await this.billModel
         .findOne({
@@ -36,10 +34,10 @@ export class BillsService {
           .find({ _id: { $in: bill.orderIds } })
           .exec();
 
-        // Manually set the orders field to the populated orders
         bill.orders = populatedOrders;
       }
 
+      // TODO: handle null bill when table bill is cleared
       return bill;
     } catch (error) {
       console.error('Error in getCurrentBillForTable:', error);
