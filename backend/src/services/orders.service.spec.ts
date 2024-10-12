@@ -59,7 +59,14 @@ describe('OrdersService', () => {
 
   it('should attempt to update an order', async () => {
     const updateOrderDto = {
-      items: [{ itemId: '5f7d7e9b9b9b9b9b9b9b9b9d', quantity: 3, price: 10 }],
+      items: [
+        {
+          itemId: '5f7d7e9b9b9b9b9b9b9b9b9d',
+          quantity: 3,
+          price: 10,
+          name: 'sushi',
+        },
+      ],
     };
 
     const result = await service.updateOrder(

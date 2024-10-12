@@ -11,10 +11,8 @@ import { MenuItem, OrderItem } from "../types";
 
 export const useTableManagement = () => {
   const { showToast } = useToast();
-  const { currentTable, setCurrentTable, tables, fetchTables, unlockTable } =
-    useTableStore();
-  const { orders, addOrderItem, removeOrderItem, clearOrder, clearAllOrders } =
-    useOrderStore();
+  const tableStore = useTableStore();
+  const orderStore = useOrderStore();
   const { menuItems, fetchMenuItems } = useMenuStore();
   const { currentStaff } = useStaffStore();
 
@@ -32,30 +30,40 @@ export const useTableManagement = () => {
     loading: billLoading,
     refetch: refetchBill,
   } = useQuery(GET_CURRENT_BILL, {
-    variables: { tableId: currentTable },
-    skip: !currentTable,
+    variables: { tableId: tableStore.currentTable },
+    skip: !tableStore.currentTable,
   });
 
   const getCurrentTableObject = useCallback(() => {
-    return tables.find((table) => table._id === currentTable) || null;
-  }, [tables, currentTable]);
+    return (
+      tableStore.tables.find(
+        (table) => table._id === tableStore.currentTable
+      ) || null
+    );
+  }, [tableStore.tables, tableStore.currentTable]);
 
   useEffect(() => {
     fetchMenuItems();
-    fetchTables();
-  }, [fetchMenuItems, fetchTables]);
+    tableStore.fetchTables();
+  }, [fetchMenuItems, tableStore, tableStore.fetchTables]);
 
   useEffect(() => {
-    if (currentTable) {
+    if (tableStore.currentTable) {
       refetchBill();
-      clearOrder(currentTable);
+      orderStore.clearOrder(tableStore.currentTable);
       setHasUnsavedChanges(false);
       setCurrentOrderId(null);
       setCurrentBillId(null);
     } else {
-      clearAllOrders();
+      orderStore.clearAllOrders();
     }
-  }, [currentTable, refetchBill, clearOrder, clearAllOrders]);
+  }, [
+    tableStore.currentTable,
+    refetchBill,
+    orderStore.clearOrder,
+    orderStore.clearAllOrders,
+    orderStore,
+  ]);
 
   useEffect(() => {
     if (billData?.getCurrentBillForTable) {
@@ -70,37 +78,29 @@ export const useTableManagement = () => {
   }, [billData]);
 
   const handleCloseTable = useCallback(async () => {
-    if (!currentTable || !currentStaff) return;
+    if (!tableStore.currentTable || !currentStaff) return;
     try {
-      const result = await unlockTable(currentTable);
+      const result = await tableStore.unlockTable(tableStore.currentTable);
       if (result.success) {
         showToast(result.message, "success");
-        await fetchTables();
-        setCurrentTable(null);
+        await tableStore.fetchTables();
+        tableStore.setCurrentTable(null);
         setCurrentOrderId(null);
         setCurrentBillId(null);
-        clearOrder(currentTable);
+        orderStore.clearOrder(tableStore.currentTable);
       } else {
         showToast(result.message, "error");
       }
     } catch (error: unknown) {
       showToast((error as Error)?.message ?? "Error closing table");
     }
-  }, [
-    currentTable,
-    currentStaff,
-    unlockTable,
-    fetchTables,
-    setCurrentTable,
-    showToast,
-    clearOrder,
-  ]);
+  }, [tableStore, currentStaff, orderStore.clearOrder, showToast]);
 
   const handleSwitchTable = useCallback(
     async (tableId: string) => {
-      if (currentTable === tableId || !currentStaff) return;
+      if (tableStore.currentTable === tableId || !currentStaff) return;
       try {
-        const result = await setCurrentTable(tableId);
+        const result = await tableStore.setCurrentTable(tableId);
         showToast(result.message, result.success ? "success" : "error");
       } catch (error) {
         showToast(
@@ -109,16 +109,16 @@ export const useTableManagement = () => {
         );
       }
     },
-    [currentTable, setCurrentTable, currentStaff, showToast]
+    [tableStore, currentStaff, showToast]
   );
 
-  const handleCreateOrder = async () => {
-    if (!currentTable || !currentStaff) {
+  const handleCreateOrder = useCallback(async () => {
+    if (!tableStore.currentTable || !currentStaff) {
       showToast("Cannot create order: no table or staff selected", "error");
       return;
     }
 
-    const currentOrder = orders[currentTable] || [];
+    const currentOrder = orderStore.orders[tableStore.currentTable] || [];
     const orderItems = currentOrder.map(({ _id, quantity, price, name }) => ({
       itemId: _id,
       quantity,
@@ -135,7 +135,7 @@ export const useTableManagement = () => {
       const { data } = await createOrder({
         variables: {
           createOrderInput: {
-            tableId: currentTable,
+            tableId: tableStore.currentTable,
             items: orderItems,
             username: currentStaff.username,
           },
@@ -147,9 +147,9 @@ export const useTableManagement = () => {
         showToast(data.createOrder.message, "success");
         setCurrentOrderId(data.createOrder.order._id);
         setHasUnsavedChanges(false);
-        clearOrder(currentTable);
+        orderStore.clearOrder(tableStore.currentTable);
         await refetchBill();
-        await fetchTables();
+        await tableStore.fetchTables();
       } else {
         showToast(data.createOrder.message, "error");
       }
@@ -159,15 +159,22 @@ export const useTableManagement = () => {
         "error"
       );
     }
-  };
+  }, [
+    tableStore,
+    currentStaff,
+    orderStore,
+    createOrder,
+    refetchBill,
+    showToast,
+  ]);
 
-  const handleUpdateOrder = async () => {
-    if (!currentOrderId || !currentTable) {
+  const handleUpdateOrder = useCallback(async () => {
+    if (!currentOrderId || !tableStore.currentTable) {
       showToast("No current order to update", "error");
       return;
     }
 
-    const currentOrder = orders[currentTable] || [];
+    const currentOrder = orderStore.orders[tableStore.currentTable] || [];
     const orderItems = currentOrder.map(
       ({ itemId, quantity, price, name }) => ({ itemId, quantity, price, name })
     );
@@ -183,7 +190,7 @@ export const useTableManagement = () => {
       if (data.updateOrder.success) {
         showToast(data.updateOrder.message, "success");
         setHasUnsavedChanges(false);
-        clearOrder(currentTable);
+        orderStore.clearOrder(tableStore.currentTable);
         await refetchBill();
       } else {
         showToast(data.updateOrder.message, "error");
@@ -194,10 +201,17 @@ export const useTableManagement = () => {
         "error"
       );
     }
-  };
+  }, [
+    currentOrderId,
+    tableStore.currentTable,
+    orderStore,
+    updateOrder,
+    refetchBill,
+    showToast,
+  ]);
 
   const handlePayBill = useCallback(async () => {
-    if (!currentBillId || !currentTable || !currentStaff) {
+    if (!currentBillId || !tableStore.currentTable || !currentStaff) {
       showToast("Cannot pay bill: missing information", "error");
       return;
     }
@@ -207,13 +221,13 @@ export const useTableManagement = () => {
 
       if (data.settleBill.success) {
         showToast(data.settleBill.message, "success");
-        await unlockTable(currentTable);
-        setCurrentTable(null);
+        await tableStore.unlockTable(tableStore.currentTable);
+        tableStore.setCurrentTable(null);
         setCurrentBillId(null);
         setCurrentOrderId(null);
-        clearOrder(currentTable);
+        orderStore.clearOrder(tableStore.currentTable);
         await refetchBill();
-        await fetchTables();
+        await tableStore.fetchTables();
       } else {
         showToast(data.settleBill.message, "error");
       }
@@ -225,20 +239,17 @@ export const useTableManagement = () => {
     }
   }, [
     currentBillId,
-    currentTable,
+    tableStore,
     currentStaff,
     settleBill,
-    unlockTable,
-    setCurrentTable,
-    showToast,
-    clearOrder,
+    orderStore,
     refetchBill,
-    fetchTables,
+    showToast,
   ]);
 
   const handleAddItem = useCallback(
     (item: MenuItem) => {
-      if (currentTable) {
+      if (tableStore.currentTable) {
         const orderItem: OrderItem = {
           _id: item._id,
           itemId: item._id,
@@ -246,60 +257,69 @@ export const useTableManagement = () => {
           price: item.price,
           quantity: 1,
         };
-        addOrderItem(currentTable, orderItem);
+        orderStore.addOrderItem(tableStore.currentTable, orderItem);
         setHasUnsavedChanges(true);
       }
     },
-    [currentTable, addOrderItem]
+    [tableStore.currentTable, orderStore.addOrderItem]
   );
 
   const handleRemoveItem = useCallback(
     (itemId: string) => {
-      if (currentTable) {
-        removeOrderItem(currentTable, itemId);
+      if (tableStore.currentTable) {
+        orderStore.removeOrderItem(tableStore.currentTable, itemId);
         setHasUnsavedChanges(true);
       }
     },
-    [currentTable, removeOrderItem]
+    [tableStore.currentTable, orderStore.removeOrderItem]
   );
 
-  const handleRemoveOrderFromBill = async (orderId: string) => {
-    if (!currentBillId || !currentTable) {
-      showToast("No active bill to remove order from", "error");
-      return;
-    }
-
-    try {
-      const { data } = await removeOrderFromBill({
-        variables: { billId: currentBillId, orderId },
-      });
-
-      if (data.removeOrderFromBill.success) {
-        showToast(data.removeOrderFromBill.message, "success");
-        await refetchBill();
-      } else {
-        showToast(data.removeOrderFromBill.message, "error");
+  const handleRemoveOrderFromBill = useCallback(
+    async (orderId: string) => {
+      if (!currentBillId || !tableStore.currentTable) {
+        showToast("No active bill to remove order from", "error");
+        return;
       }
-    } catch (error) {
-      showToast(
-        error instanceof Error
-          ? error.message
-          : "Error removing order from bill",
-        "error"
-      );
-    }
-  };
+
+      try {
+        const { data } = await removeOrderFromBill({
+          variables: { billId: currentBillId, orderId },
+        });
+
+        if (data.removeOrderFromBill.success) {
+          showToast(data.removeOrderFromBill.message, "success");
+          await refetchBill();
+        } else {
+          showToast(data.removeOrderFromBill.message, "error");
+        }
+      } catch (error) {
+        showToast(
+          error instanceof Error
+            ? error.message
+            : "Error removing order from bill",
+          "error"
+        );
+      }
+    },
+    [
+      currentBillId,
+      tableStore.currentTable,
+      removeOrderFromBill,
+      refetchBill,
+      showToast,
+    ]
+  );
 
   return {
-    currentTable,
+    currentTable: tableStore.currentTable,
     currentOrderId,
     currentBillId,
     hasUnsavedChanges,
     billData,
     billLoading,
     menuItems,
-    orders,
-    tables,
+    orders: orderStore.orders,
+    tables: tableStore.tables,
     getCurrentTableObject,
     handleCloseTable,
     handleSwitchTable,
