@@ -393,22 +393,24 @@ const TableManagement = () => {
       exit={{ opacity: 0 }}
       className="flex h-[85vh] bg-gray-900 rounded-lg overflow-hidden shadow-2xl"
     >
-      <div className="w-2/3 p-6 overflow-y-auto">
-        <h2 className="font-bold mb-4 text-white">Menu Items</h2>
+      <div className="w-2/3 lg:w-3/4 p-4 overflow-y-auto">
+        <h2 className="font-bold mb-2 text-white text-xl">Menu Items</h2>
         <MenuItems menuItems={menuItems} onAddItem={handleAddItem} />
       </div>
-      <div className="w-1/3 bg-gray-800 flex flex-col">
-        <div className="p-6 flex-grow overflow-y-auto">
-          <h2 className="font-bold mb-4 text-white">Table Management</h2>
+      <div className=" w-1/3 lg:w-1/4 bg-gray-800 flex flex-col">
+        <div className="p-4 flex-grow overflow-y-auto">
+          <h2 className="font-bold mb-3 text-white text-xl">
+            Table Management
+          </h2>
           <AnimatePresence>
             {currentTable && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="mb-6"
+                className="mb-4"
               >
-                <h3 className="font-semibold mb-2 text-white">
+                <h3 className="font-semibold mb-2 text-white text-base">
                   Current Table: {currentTable}
                 </h3>
                 {billLoading ? (
@@ -426,16 +428,20 @@ const TableManagement = () => {
               </motion.div>
             )}
           </AnimatePresence>
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2 text-white">Locked Tables</h3>
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2 text-white text-base">
+              Locked Tables
+            </h3>
             <LockedTables
               lockedTables={lockedTables}
               currentTable={currentTable}
               onSwitchTable={handleSwitchTable}
             />
           </div>
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2 text-white">Current Order</h3>
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2 text-white text-base">
+              Current Order
+            </h3>
             <OrderList
               order={currentOrder}
               onRemoveItem={handleRemoveItem}
@@ -447,7 +453,7 @@ const TableManagement = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 bg-gray-700 mb-[12px]"
+            className="p-4 bg-gray-700"
           >
             <TableActions
               currentOrderId={currentOrderId}

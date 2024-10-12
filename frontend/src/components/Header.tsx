@@ -27,7 +27,7 @@ export default function Header({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-gray-800 text-white p-3 flex flex-wrap justify-between items-center z-50">
+    <header className="fixed top-0 left-0 right-0 bg-gray-800 text-white p-2 flex flex-wrap justify-between items-center z-50">
       <h1 className=" font-bold mr-4">
         CDC Restaurant Point of Sales System
       </h1>
@@ -63,7 +63,7 @@ export default function Header({
           <span className="mr-4">Welcome, {currentStaff.name}</span>
           <button
             onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded"
           >
             Logout
           </button>

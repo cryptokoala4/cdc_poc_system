@@ -8,6 +8,7 @@ export const GET_MENU_ITEMS = gql`
       description
       price
       category
+      imageUrl
     }
   }
 `;

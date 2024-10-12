@@ -48,6 +48,7 @@ type MenuItem {
   description: String!
   price: Float!
   category: String!
+  imageUrl: String!
 }
 
 type Staff {

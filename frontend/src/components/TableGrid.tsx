@@ -97,7 +97,7 @@ const TableGrid = () => {
       />
       <div className="min-h-screen bg-gray-900 p-4 pt-20">
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2"
           style={{ scale: zoom }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
@@ -105,30 +105,30 @@ const TableGrid = () => {
             <motion.button
               key={table._id}
               className={`w-full aspect-square rounded-lg flex flex-col items-center justify-center text-white font-bold overflow-hidden shadow-lg relative
-                bg-gradient-to-br ${getTableColor(
-                  table.isOccupied,
-                  table.lockedBy,
-                  table.currentBillId
-                )}`}
+        bg-gradient-to-br ${getTableColor(
+          table.isOccupied,
+          table.lockedBy,
+          table.currentBillId
+        )}`}
               onClick={() => handleTableClick(table._id)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="text-sm mb-1">Table</span>
-              <span className="text-2xl mb-1">{table.number}</span>
-              <div className="flex flex-wrap justify-center mb-2">
+              <span className="text-xs mb-1">Table</span>
+              <span className="text-lg mb-1">{table.number}</span>
+              <div className="flex flex-wrap justify-center mb-1">
                 {[...Array(table.seats)].map((_, index) => (
-                  <UserIcon key={index} className="w-4 h-4 text-white mx-0.5" />
+                  <UserIcon key={index} className="w-3 h-3 text-white mx-0.5" />
                 ))}
               </div>
               {table.lockedBy ? (
-                <LockClosedIcon className="w-6 h-6" />
+                <LockClosedIcon className="w-4 h-4" />
               ) : (
-                <LockOpenIcon className="w-6 h-6" />
+                <LockOpenIcon className="w-4 h-4" />
               )}
               {table.lockedBy && (
-                <span className="text-xs mt-1">
-                  Locked by: {table.lockedBy}
+                <span className="text-[10px] mt-1 truncate w-full px-1">
+                  Locked: {table.lockedBy}
                 </span>
               )}
               <motion.div
@@ -148,16 +148,16 @@ const TableGrid = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4 sm:px-6 md:px-8"
           >
             <motion.div
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
               transition={{ duration: 0.3 }}
-              className="bg-gray-800 text-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+              className="bg-gray-800 text-white rounded-lg w-full max-w-7xl max-h-[90vh] overflow-hidden flex flex-col"
             >
-              <div className="flex justify-between items-center p-4 bg-gray-700">
+              <div className="flex justify-between items-center pl-4 pr-4 pt-2 pb-2 bg-gray-700">
                 <h2 className="text-xl font-bold">Table Management</h2>
                 <button
                   onClick={() => setCurrentTable(null)}

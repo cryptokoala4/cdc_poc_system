@@ -32,6 +32,7 @@ describe('GraphQL API Integration', () => {
           description
           price
           category
+          imageUrl
         }
       }
     `;

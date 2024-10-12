@@ -14,7 +14,7 @@ This is a simple Point of Sale (POS) system designed for restaurants, built with
 - **Table Management**: View and manage restaurant tables, including occupancy status.
 - **Order Management**: Create, update, and track orders for each table.
 - **Bill Generation**: Generate bills for tables and process payments.
-- **Temporary Hardcoded data**: The following data is seeded into the database: 10 Menu Items, 5 Staff, 16 Tables
+- **Temporary Hardcoded data**: The following data is seeded into the database: 10 Menu Items, 5 Staff, 24 Tables
 
 ## Prerequisites
 

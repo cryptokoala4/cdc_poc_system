@@ -24,6 +24,10 @@ export class MenuItem {
   @Field()
   @Prop({ required: true, trim: true })
   category: string;
+
+  @Field()
+  @Prop({ required: true, trim: true })
+  imageUrl: string;
 }
 
 export type MenuItemDocument = MenuItem & Document;

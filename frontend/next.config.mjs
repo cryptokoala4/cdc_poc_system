@@ -4,6 +4,9 @@ const nextConfig = {
   experimental: {
     outputStandalone: true,
   },
+  images: {
+    domains: ['upload.wikimedia.org'],
+  },
   async rewrites() {
     return [
       {

@@ -65,6 +65,7 @@ describe('POS System (e2e)', () => {
       expect(firstItem).toHaveProperty('name');
       expect(firstItem).toHaveProperty('price');
       expect(firstItem).toHaveProperty('category');
+      expect(firstItem).toHaveProperty('imageUrl');
     }
   });
 });
