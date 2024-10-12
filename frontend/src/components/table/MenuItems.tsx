@@ -9,7 +9,7 @@ interface MenuItemsProps {
 
 const MenuItems = ({ menuItems, onAddItem }: MenuItemsProps) => {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
       {menuItems.map((item) => (
         <motion.div
           key={item._id}
@@ -18,7 +18,7 @@ const MenuItems = ({ menuItems, onAddItem }: MenuItemsProps) => {
           className="bg-gray-800 rounded-lg shadow-md cursor-pointer overflow-hidden flex flex-col"
           onClick={() => onAddItem(item)}
         >
-          <div className="relative h-36">
+          <div className="relative h-32 sm:h-36">
             <Image
               src={item.imageUrl}
               alt={item.name}
@@ -26,14 +26,14 @@ const MenuItems = ({ menuItems, onAddItem }: MenuItemsProps) => {
               objectFit="cover"
             />
           </div>
-          <div className="p-3 flex flex-col flex-grow">
-            <h3 className="text-base font-semibold text-white mb-1 truncate">
+          <div className="p-2 flex flex-col flex-grow">
+            <h3 className="text-sm sm:text-base font-semibold text-white mb-1 truncate">
               {item.name}
             </h3>
-            <p className="text-gray-400 text-sm mb-2 flex-grow line-clamp-2">
+            <p className="text-gray-400 text-xs sm:text-sm mb-2 flex-grow line-clamp-2">
               {item.description}
             </p>
-            <p className="text-green-500 font-bold text-lg">
+            <p className="text-green-500 font-bold text-base sm:text-lg">
               ${item.price.toFixed(2)}
             </p>
           </div>

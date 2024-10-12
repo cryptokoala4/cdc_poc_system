@@ -30,7 +30,6 @@ const BillSummary: React.FC<BillSummaryProps> = ({
             <h4 className="font-semibold text-lg">
               Order {order._id.slice(-4)}
             </h4>
-            <span className="text-sm">Staff: {order.username}</span>
           </div>
           <ul className="mt-2 space-y-1">
             {order.items.map((item) => (

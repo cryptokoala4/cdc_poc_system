@@ -308,46 +308,20 @@ const TableManagement = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex h-[85vh] bg-gray-900 rounded-lg overflow-hidden shadow-2xl"
+      className="flex h-[85vh] w-full bg-gray-900 rounded-lg overflow-hidden shadow-2xl"
     >
-      <div className="w-2/3 lg:w-3/4 p-4 overflow-y-auto">
+      <div className="w-[65%] p-4 overflow-y-auto">
         <h2 className="font-bold mb-2 text-white text-xl">Menu Items</h2>
         <MenuItems menuItems={menuItems} onAddItem={handleAddItem} />
       </div>
-      <div className="w-1/3 lg:w-1/4 bg-gray-800 flex flex-col">
-        <div className="p-4 flex-grow overflow-y-auto">
+      <div className="w-[35%] bg-gray-800 flex flex-col">
+        <div className="p-3 flex-grow overflow-y-auto">
           <h2 className="font-bold mb-3 text-white text-xl">
             Table Management
           </h2>
-          <AnimatePresence>
-            {currentTable && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="mb-4"
-              >
-                <h3 className="font-semibold mb-2 text-white text-base">
-                  Current Table: {currentTable}
-                </h3>
-                {billLoading ? (
-                  <p className="text-gray-400">Loading bill...</p>
-                ) : billData?.getCurrentBillForTable ? (
-                  <BillSummary
-                    bill={billData.getCurrentBillForTable}
-                    currentOrder={currentOrder}
-                    onRemoveOrder={handleRemoveOrderFromBill}
-                  />
-                ) : (
-                  <p className="text-gray-400">
-                    No active bill for this table.
-                  </p>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div className="mb-4">
-            <h3 className="font-semibold mb-2 text-white text-base">
+
+          <div className="mb-3">
+            <h3 className="font-semibold mb-1 text-white text-sm">
               Locked Tables
             </h3>
             <LockedTables
@@ -356,22 +330,55 @@ const TableManagement = () => {
               onSwitchTable={handleSwitchTable}
             />
           </div>
-          <div className="mb-4">
-            <h3 className="font-semibold mb-2 text-white text-base">
+
+          <AnimatePresence>
+            {currentTable && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="mb-3"
+              >
+                <h3 className="font-semibold mb-1 text-white text-sm">
+                  Current Table: {currentTable}
+                </h3>
+                {billLoading ? (
+                  <p className="text-gray-400 text-sm">Loading bill...</p>
+                ) : billData?.getCurrentBillForTable ? (
+                  <div className="bg-gray-700 p-1 rounded-lg">
+                    <BillSummary
+                      bill={billData.getCurrentBillForTable}
+                      currentOrder={currentOrder}
+                      onRemoveOrder={handleRemoveOrderFromBill}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm">
+                    No active bill for this table.
+                  </p>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="mb-3">
+            <h3 className="font-semibold mb-1 text-white text-sm">
               Current Order
             </h3>
-            <OrderList
-              order={currentOrder}
-              onRemoveItem={handleRemoveItem}
-              total={total}
-            />
+            <div className="bg-gray-700 p-1 rounded-lg">
+              <OrderList
+                order={currentOrder}
+                onRemoveItem={handleRemoveItem}
+                total={total}
+              />
+            </div>
           </div>
         </div>
         {currentTable && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 bg-gray-700"
+            className="p-3 bg-gray-700"
           >
             <TableActions
               currentOrderId={currentOrderId}
